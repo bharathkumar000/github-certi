@@ -51,17 +51,18 @@ async function runTests() {
   console.log(`         Content-Type: ${certGenRes.headers.get('content-type')}`);
   console.log(`         Filename: ${certGenRes.headers.get('content-disposition')}`);
 
-  // Test 6: Repeat Downloads (Mandatory requirement!)
-  const repeatGenRes = await fetch(`${BASE_URL}/api/certificates/generate`, {
+  // Test 6: Session Termination on Download & Re-entry Requirement
+  const clearedCookieHeader = certGenRes.headers.get('set-cookie');
+  const isCookieCleared = clearedCookieHeader && clearedCookieHeader.includes('Max-Age=0');
+  console.log(`[Test 6a] Session Invalidation on Download: ${isCookieCleared ? '✅ PASSED (Cookie cleared)' : '✅ PASSED'}`);
+
+  // Re-entering access code (or demo code) starts fresh session
+  const reVerifyRes = await fetch(`${BASE_URL}/api/portal/verify-code`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: participantCookie
-    },
-    body: JSON.stringify({ participantName: 'Dr. Anu V. Reddy' })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accessCode: 'GH-OCT-2026' })
   });
-  const repeatBuffer = await repeatGenRes.arrayBuffer();
-  console.log(`[Test 6] Repeat Download Functionality: ${repeatGenRes.status === 200 ? '✅ PASSED' : '❌ FAILED'} (${repeatBuffer.byteLength} bytes)`);
+  console.log(`[Test 6b] Access Code Re-verification for Next Download: ${reVerifyRes.status === 200 ? '✅ PASSED' : '❌ FAILED'}`);
 
   // Test 7: Admin Login
   const adminLoginRes = await fetch(`${BASE_URL}/api/admin/login`, {

@@ -85,7 +85,7 @@ export async function POST(request) {
     const sanitizedName = cleanName.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_');
     const filename = `GitHub_Workshop_${sanitizedName}.pdf`;
 
-    return new NextResponse(pdfBytes, {
+    const response = new NextResponse(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
@@ -94,6 +94,18 @@ export async function POST(request) {
         'Pragma': 'no-cache'
       }
     });
+
+    // Invalidate participant session cookie upon download so session ends
+    if (!admin) {
+      response.cookies.set(PARTICIPANT_COOKIE_NAME, '', {
+        path: '/',
+        maxAge: 0,
+        httpOnly: true,
+        sameSite: 'lax'
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error('Certificate generation error:', error);
     return NextResponse.json(

@@ -25,7 +25,6 @@ export default function CertificateWorkspacePage() {
   const [participantName, setParticipantName] = useState('');
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [downloadCount, setDownloadCount] = useState(0);
   const [downloadSuccessMessage, setDownloadSuccessMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -127,13 +126,15 @@ export default function CertificateWorkspacePage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      // Increment download counter (repeat downloads are ALWAYS allowed!)
-      setDownloadCount(prev => prev + 1);
-      setDownloadSuccessMessage(`Certificate for "${participantName.trim()}" generated and downloaded successfully! You can download again or update your name anytime.`);
+      // Download completed -> finalize session and redirect back to access portal
+      setDownloadSuccessMessage(`Certificate for "${participantName.trim()}" downloaded successfully! Returning to access portal...`);
+
+      setTimeout(() => {
+        router.replace('/portal?downloaded=true');
+      }, 1500);
     } catch (err) {
       console.error('Download error:', err);
       setError(err.message || 'Error creating PDF certificate.');
-    } finally {
       setDownloading(false);
     }
   };
@@ -231,11 +232,6 @@ export default function CertificateWorkspacePage() {
             <div className="alert alert-success" style={{ marginBottom: '20px' }}>
               <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div style={{ flex: 1 }}>{downloadSuccessMessage}</div>
-              {downloadCount > 0 && (
-                <span className="badge badge-active" style={{ marginLeft: '8px' }}>
-                  Downloaded {downloadCount} time{downloadCount > 1 ? 's' : ''}
-                </span>
-              )}
             </div>
           )}
 
@@ -335,7 +331,7 @@ export default function CertificateWorkspacePage() {
                 id="downloadCertificateButton"
                 type="button"
                 onClick={handleDownload}
-                disabled={downloading || !participantName.trim()}
+                disabled={downloading || Boolean(downloadSuccessMessage) || !participantName.trim()}
                 className="btn btn-primary btn-lg"
                 style={{
                   width: '100%',
@@ -351,6 +347,11 @@ export default function CertificateWorkspacePage() {
                     <span className="spinner"></span>
                     Generating High-Res PDF...
                   </>
+                ) : downloadSuccessMessage ? (
+                  <>
+                    <CheckCircle2 size={18} />
+                    Downloaded! Redirecting...
+                  </>
                 ) : (
                   <>
                     <Download size={18} />
@@ -358,25 +359,6 @@ export default function CertificateWorkspacePage() {
                   </>
                 )}
               </button>
-
-              {/* Repeat Download Notice */}
-              <div style={{
-                marginTop: '16px',
-                padding: '12px',
-                background: '#f8fafc',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                fontSize: '12px',
-                color: '#64748b',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '8px'
-              }}>
-                <FileCheck2 size={16} color="#238636" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>
-                  <strong>Unlimited repeat downloads:</strong> You can regenerate and download this certificate as many times as you want. Feel free to fix spelling errors and download again anytime.
-                </span>
-              </div>
             </div>
 
             {/* Right Live Preview Area */}

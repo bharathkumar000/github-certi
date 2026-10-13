@@ -1,15 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { KeyRound, ArrowRight, AlertCircle, Sparkles, ArrowLeft } from 'lucide-react';
+import { KeyRound, ArrowRight, AlertCircle, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export default function ParticipantAccessPage() {
   const router = useRouter();
   const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [downloadedNotice, setDownloadedNotice] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('downloaded') === 'true') {
+        setDownloadedNotice(true);
+      }
+    }
+  }, []);
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
@@ -139,6 +149,15 @@ export default function ParticipantAccessPage() {
               Please enter the code provided by your instructor or session coordinator to unlock your certificate.
             </p>
           </div>
+
+          {downloadedNotice && (
+            <div className="alert alert-success" style={{ marginBottom: '20px', fontSize: '13px' }}>
+              <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <strong>Certificate Downloaded!</strong> Your session has ended. To generate another certificate, please enter an access code or use the demo code below.
+              </div>
+            </div>
+          )}
 
           {/* Quick Demo Banner */}
           <div style={{
