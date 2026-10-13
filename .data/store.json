@@ -1,6 +1,20 @@
 {
   "sessions": [
     {
+      "id": "ws-1791909680575",
+      "session_name": "IVC Workshop",
+      "session_date": "2026-10-13",
+      "access_code_hash": "d757f1e1c253985cb26f1ae822a0162eb00e6e1e63fb3d4ef14a7785a1985962",
+      "raw_code_for_admin": "GH-IVC-2026",
+      "is_active": true,
+      "certificate_template_path": "/templates/gitopia-certificate.pdf",
+      "date_mode": "auto_current",
+      "custom_date_text": "",
+      "timezone": "Asia/Kolkata",
+      "created_at": "2026-10-13T16:41:20.575Z",
+      "updated_at": "2026-10-13T16:41:20.575Z"
+    },
+    {
       "id": "ws-session-001",
       "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
       "session_date": "2026-10-13",
@@ -33,9 +47,35 @@
       "date_color": "#334155",
       "date_alignment": "left",
       "updated_at": "2026-10-13T14:30:00.000Z"
+    },
+    {
+      "id": "layout-1791909680575",
+      "session_id": "ws-1791909680575",
+      "name_x": 7.25,
+      "name_y": 51.8,
+      "name_font_family": "Helvetica-Bold",
+      "name_font_size": 38,
+      "name_color": "#111827",
+      "name_alignment": "left",
+      "name_max_width": 60,
+      "date_x": 74.2,
+      "date_y": 82.5,
+      "date_font_family": "Helvetica",
+      "date_font_size": 13,
+      "date_color": "#334155",
+      "date_alignment": "left",
+      "updated_at": "2026-10-13T16:41:20.575Z"
     }
   ],
   "logs": [
+    {
+      "id": "log-1791909693575-5ryv",
+      "session_id": "ws-session-001",
+      "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
+      "participant_name_masked": "An*** dy",
+      "status": "success",
+      "created_at": "2026-10-13T16:41:33.575Z"
+    },
     {
       "id": "log-1791909333742-mi52",
       "session_id": "ws-session-001",

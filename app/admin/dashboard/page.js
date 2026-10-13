@@ -97,8 +97,19 @@ export default function AdminDashboardPage() {
 
       const createdCode = data.session?.raw_code_for_admin || codeToUse;
       setActionMessage(`🎉 Access code created successfully: ${createdCode}`);
+
+      // Immediately add the new code to the table so the user sees it right away!
+      if (data.session) {
+        setSessions((prev) => [
+          { ...data.session, raw_code_for_admin: createdCode },
+          ...prev.filter((s) => s.id !== data.session.id)
+        ]);
+      }
+
       setNewCode('');
       setSessionName('');
+
+      // Also trigger background fetch to ensure synchronization
       fetchSessions();
 
       // Automatically copy to clipboard for convenience
@@ -384,7 +395,7 @@ export default function AdminDashboardPage() {
             ) : (
               <div style={{ divideY: '1px solid #f1f5f9' }}>
                 {sessions.map((session) => {
-                  const code = session.raw_code_for_admin || 'GH-OCT-2026';
+                  const code = session.raw_code_for_admin || session.access_code || session.code || 'ACCESS-CODE';
                   const isCopied = copiedCodeId === session.id;
 
                   return (
