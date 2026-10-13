@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { KeyRound, ArrowRight, AlertCircle, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { KeyRound, ArrowRight, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export default function ParticipantAccessPage() {
   const router = useRouter();
@@ -25,8 +25,10 @@ export default function ParticipantAccessPage() {
     e.preventDefault();
     setError('');
 
-    if (!accessCode.trim()) {
-      setError('Please enter your workshop access code.');
+    const trimmedCode = accessCode.trim().toUpperCase();
+
+    if (!trimmedCode) {
+      setError('Please paste or enter your workshop access code.');
       return;
     }
 
@@ -36,13 +38,13 @@ export default function ParticipantAccessPage() {
       const res = await fetch('/api/portal/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessCode: accessCode.trim() })
+        body: JSON.stringify({ accessCode: trimmedCode })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Verification failed. Please check the code.');
+        setError(data.error || 'Verification failed. Please check the access code.');
         setLoading(false);
         return;
       }
@@ -56,36 +58,8 @@ export default function ParticipantAccessPage() {
     }
   };
 
-  const handleAutoFillAndSubmit = async (demoCode = 'GH-OCT-2026') => {
-    setAccessCode(demoCode);
-    setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/portal/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessCode: demoCode })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Verification failed. Please check the code.');
-        setLoading(false);
-        return;
-      }
-
-      router.push('/portal/certificate');
-    } catch (err) {
-      console.error('Code verification error:', err);
-      setError('A connection error occurred. Please try again.');
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="page-wrapper" style={{ background: '#f8fafc' }}>
+    <div className="page-wrapper" style={{ background: '#f8fafc', minHeight: '100vh' }}>
       {/* Top Header */}
       <header style={{
         background: '#0d1117',
@@ -110,7 +84,7 @@ export default function ParticipantAccessPage() {
             </svg>
             <span style={{ fontWeight: '600', fontSize: '16px' }}>Certify Portal</span>
           </Link>
-          <Link href="/" style={{ color: '#8b949e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Link href="/" style={{ color: '#8b949e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
             <ArrowLeft size={14} /> Back to Home
           </Link>
         </div>
@@ -145,8 +119,8 @@ export default function ParticipantAccessPage() {
             <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>
               Enter Session Access Code
             </h1>
-            <p style={{ fontSize: '14px', color: '#64748b' }}>
-              Please enter the code provided by your instructor or session coordinator to unlock your certificate.
+            <p style={{ fontSize: '14px', color: '#64748b', lineHeight: '1.5' }}>
+              Please enter the access code provided by your instructor or session coordinator to unlock your certificate.
             </p>
           </div>
 
@@ -154,53 +128,10 @@ export default function ParticipantAccessPage() {
             <div className="alert alert-success" style={{ marginBottom: '20px', fontSize: '13px' }}>
               <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong>Certificate Downloaded!</strong> Your session has ended. To generate another certificate, please enter an access code or use the demo code below.
+                <strong>Certificate Downloaded!</strong> Your session has completed. To generate another certificate, please enter a valid access code below.
               </div>
             </div>
           )}
-
-          {/* Quick Demo Banner */}
-          <div style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '10px',
-            padding: '12px 14px',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={16} color="#16a34a" />
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#15803d' }}>
-                  Demo Mode
-                </div>
-                <div style={{ fontSize: '11px', color: '#166534' }}>
-                  Code: <code style={{ fontWeight: '700' }}>GH-OCT-2026</code>
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleAutoFillAndSubmit('GH-OCT-2026')}
-              disabled={loading}
-              className="btn btn-sm"
-              style={{
-                background: '#16a34a',
-                color: '#ffffff',
-                border: 'none',
-                padding: '6px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              ⚡ Try Demo
-            </button>
-          </div>
 
           {error && (
             <div className="alert alert-error" style={{ marginBottom: '20px' }}>
@@ -210,36 +141,15 @@ export default function ParticipantAccessPage() {
           )}
 
           <form onSubmit={handleCodeSubmit}>
-            <div className="form-group" style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <label htmlFor="accessCodeInput" className="form-label" style={{ margin: 0 }}>
-                  Access Code
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setAccessCode('GH-OCT-2026')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#0969da',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: 0
-                  }}
-                >
-                  <Sparkles size={13} />
-                  Auto-fill Demo Code
-                </button>
-              </div>
+            <div className="form-group" style={{ marginBottom: '22px' }}>
+              <label htmlFor="accessCodeInput" className="form-label" style={{ marginBottom: '8px', color: '#1e293b' }}>
+                Access Code
+              </label>
               <input
                 id="accessCodeInput"
                 type="text"
                 className="input-text input-code"
-                placeholder="e.g. GH-OCT-2026"
+                placeholder="Paste your access code here"
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 autoFocus
@@ -247,12 +157,14 @@ export default function ParticipantAccessPage() {
                 style={{
                   fontSize: '18px',
                   textAlign: 'center',
-                  padding: '12px',
-                  letterSpacing: '2px'
+                  padding: '14px',
+                  letterSpacing: '1.5px',
+                  fontFamily: 'monospace',
+                  fontWeight: '700'
                 }}
               />
-              <span className="form-hint" style={{ textAlign: 'center', marginTop: '6px' }}>
-                Demo code: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: '700', color: '#0969da' }}>GH-OCT-2026</code>
+              <span className="form-hint" style={{ textAlign: 'center', marginTop: '8px', display: 'block', color: '#64748b' }}>
+                Paste the unique access code created by the admin for your session.
               </span>
             </div>
 
@@ -263,7 +175,7 @@ export default function ParticipantAccessPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '12px',
+                padding: '13px',
                 fontSize: '15px',
                 fontWeight: '600',
                 borderRadius: '8px'
@@ -289,8 +201,8 @@ export default function ParticipantAccessPage() {
             borderTop: '1px solid #f1f5f9',
             textAlign: 'center'
           }}>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Need help? Ask your session mentor or check your workshop registration email for your unique code.
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
+              Need help? Ask your session mentor or coordinator for your session access code.
             </p>
           </div>
         </div>

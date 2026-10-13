@@ -18,7 +18,7 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const accessCode = body.accessCode ? body.accessCode.trim() : '';
+    const accessCode = body.accessCode ? body.accessCode.trim().toUpperCase() : '';
 
     if (!accessCode) {
       return NextResponse.json(

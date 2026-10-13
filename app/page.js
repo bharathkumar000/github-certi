@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Award, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Award, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -135,23 +135,6 @@ export default function HomePage() {
                 Access Participant Portal
                 <ArrowRight size={18} />
               </Link>
-            </div>
-            <div style={{ marginBottom: '36px' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '12px',
-                color: '#15803d',
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontWeight: '500'
-              }}>
-                <Sparkles size={14} color="#16a34a" />
-                Demo Access Code ready: <strong>GH-OCT-2026</strong>
-              </span>
             </div>
           </div>
         </div>
