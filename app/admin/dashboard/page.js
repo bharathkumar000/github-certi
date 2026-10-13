@@ -132,8 +132,11 @@ export default function AdminDashboardPage() {
   };
 
   const handleToggleActive = async (session) => {
+    const newStatus = !session.is_active;
+    // Optimistically update status in UI immediately
+    setSessions(prev => prev.map(s => s.id === session.id ? { ...s, is_active: newStatus } : s));
+
     try {
-      const newStatus = !session.is_active;
       const res = await fetch(`/api/admin/sessions/${session.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -142,19 +145,24 @@ export default function AdminDashboardPage() {
 
       if (res.ok) {
         setActionMessage(`Code ${session.raw_code_for_admin || ''} is now ${newStatus ? 'Active' : 'Disabled'}.`);
-        fetchSessions();
         setTimeout(() => setActionMessage(''), 3000);
+      } else {
+        fetchSessions();
       }
     } catch (err) {
       console.error('Failed to update status:', err);
+      fetchSessions();
     }
   };
 
   const handleDeleteSession = async (session) => {
-    const code = session.raw_code_for_admin || 'this';
+    const code = session.raw_code_for_admin || session.access_code || session.code || 'this code';
     if (!confirm(`Are you sure you want to delete access code "${code}"? Participants will no longer be able to use it.`)) {
       return;
     }
+
+    // Immediately remove from UI list
+    setSessions(prev => prev.filter(s => s.id !== session.id && (s.raw_code_for_admin || s.id) !== (session.raw_code_for_admin || session.id)));
 
     try {
       const res = await fetch(`/api/admin/sessions/${session.id}`, {
@@ -162,12 +170,16 @@ export default function AdminDashboardPage() {
       });
 
       if (res.ok) {
-        setActionMessage(`Access code "${code}" deleted.`);
-        fetchSessions();
+        setActionMessage(`Access code "${code}" deleted successfully.`);
         setTimeout(() => setActionMessage(''), 3000);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErrorMessage(data.error || 'Failed to delete access code.');
+        fetchSessions();
       }
     } catch (err) {
       console.error('Failed to delete code:', err);
+      fetchSessions();
     }
   };
 
