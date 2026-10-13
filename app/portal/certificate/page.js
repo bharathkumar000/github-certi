@@ -15,6 +15,7 @@ import {
   FileCheck2,
   RefreshCw
 } from 'lucide-react';
+import { renderPdfToCanvas } from '@/lib/pdfjs-loader';
 
 export default function CertificateWorkspacePage() {
   const router = useRouter();
@@ -29,6 +30,9 @@ export default function CertificateWorkspacePage() {
   const [error, setError] = useState('');
 
   const containerRef = useRef(null);
+  const pdfCanvasRef = useRef(null);
+  const [pdfRendering, setPdfRendering] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState('1086 / 814.5');
 
   // Fetch session and layout info on load
   useEffect(() => {
@@ -55,6 +59,29 @@ export default function CertificateWorkspacePage() {
 
     loadSession();
   }, [router]);
+
+  // Render PDF template onto canvas whenever template path is available
+  useEffect(() => {
+    if (!sessionData?.certificate_template_path) return;
+    const tPath = sessionData.certificate_template_path;
+    if (tPath.toLowerCase().endsWith('.pdf')) {
+      let isSubscribed = true;
+      setPdfRendering(true);
+      renderPdfToCanvas(tPath, pdfCanvasRef.current)
+        .then((res) => {
+          if (isSubscribed && res?.aspectRatio) {
+            setAspectRatio(res.aspectRatio);
+          }
+        })
+        .catch((err) => console.error('PDF render error:', err))
+        .finally(() => {
+          if (isSubscribed) setPdfRendering(false);
+        });
+      return () => {
+        isSubscribed = false;
+      };
+    }
+  }, [sessionData?.certificate_template_path]);
 
   // Handle PDF Download
   const handleDownload = async () => {
@@ -378,7 +405,7 @@ export default function CertificateWorkspacePage() {
                 style={{
                   position: 'relative',
                   width: '100%',
-                  aspectRatio: '16 / 9',
+                  aspectRatio: aspectRatio,
                   background: '#ffffff',
                   borderRadius: '12px',
                   overflow: 'hidden',
@@ -387,10 +414,9 @@ export default function CertificateWorkspacePage() {
                   userSelect: 'none'
                 }}
               >
-                {/* Background Certificate Template Image */}
-                <img
-                  src={templatePath}
-                  alt="Certificate Template"
+                {/* Background PDF Canvas */}
+                <canvas
+                  ref={pdfCanvasRef}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -398,9 +424,41 @@ export default function CertificateWorkspacePage() {
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    pointerEvents: 'none'
+                    pointerEvents: 'none',
+                    display: templatePath?.toLowerCase().endsWith('.pdf') ? 'block' : 'none'
                   }}
                 />
+
+                {/* Fallback Image for non-PDF templates */}
+                {!templatePath?.toLowerCase().endsWith('.pdf') && (
+                  <img
+                    src={templatePath}
+                    alt="Certificate Template"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                )}
+
+                {pdfRendering && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    zIndex: 10
+                  }}>
+                    <span className="spinner" style={{ borderColor: '#0969da', borderTopColor: 'transparent', width: '28px', height: '28px' }}></span>
+                  </div>
+                )}
 
                 {/* Live Name Overlay */}
                 <div
@@ -415,10 +473,10 @@ export default function CertificateWorkspacePage() {
                         ? 'translate(-100%, -50%)'
                         : 'translate(-50%, -50%)',
                     textAlign: layout?.name_alignment || 'center',
-                    maxWidth: `${layout?.name_max_width ?? 75}%`,
+                    maxWidth: `${layout?.name_max_width ?? 80}%`,
                     width: 'auto',
                     whiteSpace: 'nowrap',
-                    color: layout?.name_color || '#1a1f2c',
+                    color: layout?.name_color || '#111827',
                     fontFamily: layout?.name_font_family?.includes('Times')
                       ? '"Times New Roman", Times, serif'
                       : layout?.name_font_family?.includes('Courier')
@@ -429,7 +487,7 @@ export default function CertificateWorkspacePage() {
                     letterSpacing: '-0.3px',
                     pointerEvents: 'none',
                     transition: 'font-size 0.1s ease',
-                    textShadow: '0 1px 2px rgba(255,255,255,0.8)'
+                    textShadow: '0 1px 2px rgba(255,255,255,0.7)'
                   }}
                 >
                   {participantName || (
@@ -445,22 +503,22 @@ export default function CertificateWorkspacePage() {
                     id="previewDateOverlay"
                     style={{
                       position: 'absolute',
-                      left: `${layout?.date_x ?? 27.5}%`,
-                      top: `${layout?.date_y ?? 78.5}%`,
+                      left: `${layout?.date_x ?? 74.2}%`,
+                      top: `${layout?.date_y ?? 82.5}%`,
                       transform: layout?.date_alignment === 'left'
                         ? 'translate(0%, -50%)'
                         : layout?.date_alignment === 'right'
                           ? 'translate(-100%, -50%)'
                           : 'translate(-50%, -50%)',
-                      textAlign: layout?.date_alignment || 'center',
-                      color: layout?.date_color || '#475569',
+                      textAlign: layout?.date_alignment || 'left',
+                      color: layout?.date_color || '#334155',
                       fontFamily: layout?.date_font_family?.includes('Times')
                         ? '"Times New Roman", Times, serif'
                         : layout?.date_font_family?.includes('Courier')
                           ? '"Courier New", Courier, monospace'
                           : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       fontWeight: layout?.date_font_family?.includes('Bold') ? '700' : '500',
-                      fontSize: `clamp(9px, ${(layout?.date_font_size || 15) * 0.05}cqw, ${(layout?.date_font_size || 15) * 1.1}px)`,
+                      fontSize: `clamp(9px, ${(layout?.date_font_size || 13) * 0.05}cqw, ${(layout?.date_font_size || 13) * 1.05}px)`,
                       pointerEvents: 'none',
                       whiteSpace: 'nowrap'
                     }}

@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Move
 } from 'lucide-react';
+import { renderPdfToCanvas } from '@/lib/pdfjs-loader';
 
 export default function CertificateLayoutEditorPage({ params }) {
   const router = useRouter();
@@ -37,19 +38,21 @@ export default function CertificateLayoutEditorPage({ params }) {
     name_x: 50,
     name_y: 49.5,
     name_font_family: 'Helvetica-Bold',
-    name_font_size: 40,
-    name_color: '#1a1f2c',
+    name_font_size: 42,
+    name_color: '#111827',
     name_alignment: 'center',
-    name_max_width: 75,
-    date_x: 27.5,
-    date_y: 78.5,
+    name_max_width: 80,
+    date_x: 74.2,
+    date_y: 82.5,
     date_font_family: 'Helvetica',
-    date_font_size: 15,
-    date_color: '#475569',
-    date_alignment: 'center'
+    date_font_size: 13,
+    date_color: '#334155',
+    date_alignment: 'left'
   });
 
   const previewCanvasRef = useRef(null);
+  const pdfBgCanvasRef = useRef(null);
+  const [aspectRatio, setAspectRatio] = useState('1086 / 814.5');
 
   useEffect(() => {
     async function loadData() {
@@ -73,6 +76,25 @@ export default function CertificateLayoutEditorPage({ params }) {
     }
     loadData();
   }, [sessionId, router]);
+
+  // Render PDF background onto canvas
+  useEffect(() => {
+    if (!session?.certificate_template_path) return;
+    const tPath = session.certificate_template_path;
+    if (tPath.toLowerCase().endsWith('.pdf')) {
+      let isSubscribed = true;
+      renderPdfToCanvas(tPath, pdfBgCanvasRef.current)
+        .then((res) => {
+          if (isSubscribed && res?.aspectRatio) {
+            setAspectRatio(res.aspectRatio);
+          }
+        })
+        .catch((err) => console.error('Editor PDF render error:', err));
+      return () => {
+        isSubscribed = false;
+      };
+    }
+  }, [session?.certificate_template_path]);
 
   // Click on canvas to instantly position the active element
   const handleCanvasClick = (e) => {
@@ -126,16 +148,16 @@ export default function CertificateLayoutEditorPage({ params }) {
       name_x: 50,
       name_y: 49.5,
       name_font_family: 'Helvetica-Bold',
-      name_font_size: 40,
-      name_color: '#1a1f2c',
+      name_font_size: 42,
+      name_color: '#111827',
       name_alignment: 'center',
-      name_max_width: 75,
-      date_x: 27.5,
-      date_y: 78.5,
+      name_max_width: 80,
+      date_x: 74.2,
+      date_y: 82.5,
       date_font_family: 'Helvetica',
-      date_font_size: 15,
-      date_color: '#475569',
-      date_alignment: 'center'
+      date_font_size: 13,
+      date_color: '#334155',
+      date_alignment: 'left'
     });
   };
 
@@ -550,7 +572,7 @@ export default function CertificateLayoutEditorPage({ params }) {
                 style={{
                   position: 'relative',
                   width: '100%',
-                  aspectRatio: '16 / 9',
+                  aspectRatio: aspectRatio,
                   background: '#ffffff',
                   borderRadius: '12px',
                   overflow: 'hidden',
@@ -560,10 +582,9 @@ export default function CertificateLayoutEditorPage({ params }) {
                   userSelect: 'none'
                 }}
               >
-                {/* Background image */}
-                <img
-                  src={templatePath}
-                  alt="Certificate Template Background"
+                {/* Background PDF Canvas */}
+                <canvas
+                  ref={pdfBgCanvasRef}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -571,9 +592,27 @@ export default function CertificateLayoutEditorPage({ params }) {
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    pointerEvents: 'none'
+                    pointerEvents: 'none',
+                    display: templatePath?.toLowerCase().endsWith('.pdf') ? 'block' : 'none'
                   }}
                 />
+
+                {/* Fallback Image for non-PDF templates */}
+                {!templatePath?.toLowerCase().endsWith('.pdf') && (
+                  <img
+                    src={templatePath}
+                    alt="Certificate Template Background"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                )}
 
                 {/* Name Marker & Preview Overlay */}
                 <div

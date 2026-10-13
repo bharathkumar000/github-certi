@@ -7,12 +7,12 @@
       "raw_code_for_admin": "GH-OCT-2026",
       "access_code_hash": "8d16025e677a25c0b8b4e1f8f253674b2584ee35dfbefae960d657591a29f3d5",
       "is_active": true,
-      "certificate_template_path": "/templates/default-certificate.png",
+      "certificate_template_path": "/templates/gitopia-certificate.pdf",
       "date_mode": "auto_current",
       "custom_date_text": "",
       "timezone": "Asia/Kolkata",
       "created_at": "2026-10-13T08:35:16.636Z",
-      "updated_at": "2026-10-13T08:35:16.638Z"
+      "updated_at": "2026-10-13T14:30:00.000Z"
     }
   ],
   "layouts": [
@@ -22,51 +22,35 @@
       "name_x": 50,
       "name_y": 49.5,
       "name_font_family": "Helvetica-Bold",
-      "name_font_size": 40,
-      "name_color": "#1a1f2c",
+      "name_font_size": 42,
+      "name_color": "#111827",
       "name_alignment": "center",
-      "name_max_width": 75,
-      "date_x": 27.5,
-      "date_y": 78.5,
+      "name_max_width": 80,
+      "date_x": 74.2,
+      "date_y": 82.5,
       "date_font_family": "Helvetica",
-      "date_font_size": 15,
-      "date_color": "#475569",
-      "date_alignment": "center",
-      "updated_at": "2026-10-13T08:35:16.638Z"
+      "date_font_size": 13,
+      "date_color": "#334155",
+      "date_alignment": "left",
+      "updated_at": "2026-10-13T14:30:00.000Z"
     }
   ],
   "logs": [
     {
-      "id": "log-1791881133437-nghk",
+      "id": "log-1791902063296-fonk",
       "session_id": "ws-session-001",
       "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
       "participant_name_masked": "Dr*** dy",
       "status": "success",
-      "created_at": "2026-10-13T08:45:33.437Z"
+      "created_at": "2026-10-13T14:34:23.296Z"
     },
     {
-      "id": "log-1791881133400-dkvq",
+      "id": "log-1791902063183-uuq1",
       "session_id": "ws-session-001",
       "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
       "participant_name_masked": "An*** dy",
       "status": "success",
-      "created_at": "2026-10-13T08:45:33.401Z"
-    },
-    {
-      "id": "log-1791880642646-boj5",
-      "session_id": "ws-session-001",
-      "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
-      "participant_name_masked": "Dr*** dy",
-      "status": "success",
-      "created_at": "2026-10-13T08:37:22.646Z"
-    },
-    {
-      "id": "log-1791880642607-47w0",
-      "session_id": "ws-session-001",
-      "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
-      "participant_name_masked": "An*** dy",
-      "status": "success",
-      "created_at": "2026-10-13T08:37:22.607Z"
+      "created_at": "2026-10-13T14:34:23.183Z"
     },
     {
       "id": "log-001",

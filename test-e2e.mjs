@@ -1,5 +1,4 @@
-// Comprehensive End-to-End Acceptance Test Script
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
 
 async function runTests() {
   console.log('🚀 Running Full E2E Verification Suite for GitHub Workshop Certificate Generator...\n');
