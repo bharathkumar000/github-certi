@@ -34,13 +34,13 @@ export default function CertificateLayoutEditorPage({ params }) {
 
   // Layout state
   const [layout, setLayout] = useState({
-    name_x: 50,
-    name_y: 49.5,
+    name_x: 7.25,
+    name_y: 51.8,
     name_font_family: 'Helvetica-Bold',
-    name_font_size: 42,
+    name_font_size: 38,
     name_color: '#111827',
-    name_alignment: 'center',
-    name_max_width: 80,
+    name_alignment: 'left',
+    name_max_width: 60,
     date_x: 74.2,
     date_y: 82.5,
     date_font_family: 'Helvetica',
@@ -150,13 +150,13 @@ export default function CertificateLayoutEditorPage({ params }) {
 
   const resetDefaults = () => {
     setLayout({
-      name_x: 50,
-      name_y: 49.5,
+      name_x: 7.25,
+      name_y: 51.8,
       name_font_family: 'Helvetica-Bold',
-      name_font_size: 42,
+      name_font_size: 38,
       name_color: '#111827',
-      name_alignment: 'center',
-      name_max_width: 80,
+      name_alignment: 'left',
+      name_max_width: 60,
       date_x: 74.2,
       date_y: 82.5,
       date_font_family: 'Helvetica',
@@ -584,7 +584,8 @@ export default function CertificateLayoutEditorPage({ params }) {
                   boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
                   border: '2px solid #0969da',
                   cursor: 'crosshair',
-                  userSelect: 'none'
+                  userSelect: 'none',
+                  containerType: 'inline-size'
                 }}
               >
                 {/* Background PDF Canvas */}
@@ -640,7 +641,7 @@ export default function CertificateLayoutEditorPage({ params }) {
                         ? '"Courier New", Courier, monospace'
                         : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     fontWeight: layout.name_font_family?.includes('Bold') ? '700' : '600',
-                    fontSize: `clamp(14px, ${layout.name_font_size * 0.052}cqw, ${layout.name_font_size * 1.1}px)`,
+                    fontSize: `clamp(14px, ${(layout.name_font_size / 1086) * 100}cqw, ${layout.name_font_size * 1.1}px)`,
                     padding: '2px 8px',
                     border: activeTarget === 'name' ? '2px dashed #0969da' : '1px dotted transparent',
                     background: activeTarget === 'name' ? 'rgba(9, 105, 218, 0.08)' : 'transparent',

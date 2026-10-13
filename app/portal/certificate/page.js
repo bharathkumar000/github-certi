@@ -416,7 +416,8 @@ export default function CertificateWorkspacePage() {
                   overflow: 'hidden',
                   boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
                   border: '1px solid #cbd5e1',
-                  userSelect: 'none'
+                  userSelect: 'none',
+                  containerType: 'inline-size'
                 }}
               >
                 {/* Background PDF Canvas */}
@@ -470,15 +471,15 @@ export default function CertificateWorkspacePage() {
                   id="previewNameOverlay"
                   style={{
                     position: 'absolute',
-                    left: `${layout?.name_x ?? 50}%`,
-                    top: `${layout?.name_y ?? 49.5}%`,
+                    left: `${layout?.name_x ?? 7.25}%`,
+                    top: `${layout?.name_y ?? 51.8}%`,
                     transform: layout?.name_alignment === 'left'
                       ? 'translate(0%, -50%)'
                       : layout?.name_alignment === 'right'
                         ? 'translate(-100%, -50%)'
                         : 'translate(-50%, -50%)',
-                    textAlign: layout?.name_alignment || 'center',
-                    maxWidth: `${layout?.name_max_width ?? 80}%`,
+                    textAlign: layout?.name_alignment || 'left',
+                    maxWidth: `${layout?.name_max_width ?? 60}%`,
                     width: 'auto',
                     whiteSpace: 'nowrap',
                     color: layout?.name_color || '#111827',
@@ -488,7 +489,7 @@ export default function CertificateWorkspacePage() {
                         ? '"Courier New", Courier, monospace'
                         : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     fontWeight: layout?.name_font_family?.includes('Bold') ? '700' : '600',
-                    fontSize: `clamp(14px, ${dynamicFontSize * 0.052}cqw, ${dynamicFontSize * 1.1}px)`,
+                    fontSize: `clamp(14px, ${(dynamicFontSize / 1086) * 100}cqw, ${dynamicFontSize * 1.1}px)`,
                     letterSpacing: '-0.3px',
                     pointerEvents: 'none',
                     transition: 'font-size 0.1s ease',
@@ -523,7 +524,7 @@ export default function CertificateWorkspacePage() {
                           ? '"Courier New", Courier, monospace'
                           : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                       fontWeight: layout?.date_font_family?.includes('Bold') ? '700' : '500',
-                      fontSize: `clamp(9px, ${(layout?.date_font_size || 13) * 0.05}cqw, ${(layout?.date_font_size || 13) * 1.05}px)`,
+                      fontSize: `clamp(9px, ${((layout?.date_font_size || 13) / 1086) * 100}cqw, ${(layout?.date_font_size || 13) * 1.05}px)`,
                       pointerEvents: 'none',
                       whiteSpace: 'nowrap'
                     }}
