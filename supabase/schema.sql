@@ -221,3 +221,78 @@ ON CONFLICT (session_id) DO UPDATE SET
   date_x = EXCLUDED.date_x,
   date_y = EXCLUDED.date_y,
   date_font_size = EXCLUDED.date_font_size;
+
+-- Session: GH-IVC-2026 (SHA-256 hash: 0c0d92a48b94374b24b850cd3981e92a7513c48e406fdf20e88c42bfff2e35aa)
+INSERT INTO workshop_sessions (
+  id,
+  session_name,
+  session_date,
+  access_code_hash,
+  raw_code_for_admin,
+  is_active,
+  certificate_template_path,
+  date_mode,
+  custom_date_text,
+  timezone
+)
+VALUES (
+  'ws-session-002',
+  'IVC Workshop',
+  CURRENT_DATE,
+  '0c0d92a48b94374b24b850cd3981e92a7513c48e406fdf20e88c42bfff2e35aa',
+  'GH-IVC-2026',
+  true,
+  '/templates/gitopia-certificate.pdf',
+  'auto_current',
+  '',
+  'Asia/Kolkata'
+)
+ON CONFLICT (id) DO UPDATE SET
+  session_name = EXCLUDED.session_name,
+  access_code_hash = EXCLUDED.access_code_hash,
+  raw_code_for_admin = EXCLUDED.raw_code_for_admin,
+  certificate_template_path = EXCLUDED.certificate_template_path;
+
+INSERT INTO certificate_layouts (
+  id,
+  session_id,
+  name_x,
+  name_y,
+  name_font_family,
+  name_font_size,
+  name_color,
+  name_alignment,
+  name_max_width,
+  date_x,
+  date_y,
+  date_font_family,
+  date_font_size,
+  date_color,
+  date_alignment
+)
+VALUES (
+  'layout-002',
+  'ws-session-002',
+  7.25,
+  51.8,
+  'Helvetica-Bold',
+  38,
+  '#111827',
+  'left',
+  60,
+  74.2,
+  82.5,
+  'Helvetica',
+  13,
+  '#334155',
+  'left'
+)
+ON CONFLICT (session_id) DO UPDATE SET
+  name_x = EXCLUDED.name_x,
+  name_y = EXCLUDED.name_y,
+  name_alignment = EXCLUDED.name_alignment,
+  name_font_size = EXCLUDED.name_font_size,
+  date_x = EXCLUDED.date_x,
+  date_y = EXCLUDED.date_y,
+  date_font_size = EXCLUDED.date_font_size;
+
