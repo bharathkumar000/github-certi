@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'GitHub Workshop – Certificate Generator',
-  description: 'Official portal for generating and downloading authenticated GitHub Workshop certificates with live preview and session validation.',
+  title: 'Certify – Workshop Certificate Generator',
+  description: 'Certify: Official portal for generating and downloading authenticated workshop certificates with live preview and session validation.',
   icons: {
     icon: '/favicon.ico'
   }

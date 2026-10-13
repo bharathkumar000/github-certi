@@ -1,7 +1,7 @@
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:3000';
 
 async function runTests() {
-  console.log('🚀 Running Full E2E Verification Suite for GitHub Workshop Certificate Generator...\n');
+  console.log('🚀 Running Full E2E Verification Suite for Certify Workshop Certificate Generator...\n');
 
   // Test 1: Landing Page
   const landingRes = await fetch(`${BASE_URL}/`);

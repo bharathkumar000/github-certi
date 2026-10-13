@@ -22,7 +22,7 @@ export default function HomePage() {
             </svg>
             <div>
               <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.3px', color: '#ffffff' }}>
-                GitHub Workshop
+                Certify
               </span>
               <span style={{
                 marginLeft: '8px',
@@ -87,13 +87,13 @@ export default function HomePage() {
             </div>
 
             <h1 style={{
-              fontSize: '38px',
+              fontSize: '42px',
               fontWeight: '800',
               letterSpacing: '-1px',
               color: '#0f172a',
               marginBottom: '12px'
             }}>
-              GitHub Workshop
+              Certify
             </h1>
             
             <h2 style={{
@@ -102,7 +102,7 @@ export default function HomePage() {
               color: '#475569',
               marginBottom: '24px'
             }}>
-              Certificate Generation Portal
+              Workshop Certificate Generation Portal
             </h2>
 
             <p style={{
@@ -112,7 +112,7 @@ export default function HomePage() {
               margin: '0 auto 36px',
               lineHeight: '1.6'
             }}>
-              Welcome to the GitHub Workshop certificate portal. Participants can enter their designated session access code to instantly generate, customize, preview, and download their official certificate of completion.
+              Welcome to Certify. Participants can enter their designated session access code to instantly generate, preview, and download their official certificate of completion.
             </p>
 
             <div style={{
@@ -174,7 +174,7 @@ export default function HomePage() {
           gap: '12px'
         }}>
           <div>
-            GitHub Workshop Certificate Generation Portal &copy; {new Date().getFullYear()}
+            Certify – Workshop Certificate Generation Portal &copy; {new Date().getFullYear()}
           </div>
           <div>
             <Link href="/admin/login" style={{ color: '#64748b', textDecoration: 'none' }}>

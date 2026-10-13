@@ -1,6 +1,6 @@
-# GitHub Workshop Certificate Generator
+# Certify – Workshop Certificate Generator
 
-A complete, professional, responsive, full-stack website for generating and downloading authenticated certificates for GitHub Workshops. Built with **Next.js (App Router)**, **Supabase PostgreSQL**, and **pdf-lib**.
+A complete, professional, responsive, full-stack website for generating and downloading authenticated certificates for workshops. Built with **Next.js (App Router)**, **Supabase PostgreSQL**, and **pdf-lib**.
 
 ---
 
@@ -13,21 +13,21 @@ A complete, professional, responsive, full-stack website for generating and down
 2. **Real-Time Live Certificate Preview:**
    - As participants type their name, it renders instantly on the certificate preview at the configured coordinates.
    - Dynamic font auto-scaling for long names ensures text never overflows certificate boundaries.
-   - Exact 1:1 visual match between preview and downloaded PDF.
+   - Exact 1:1 visual match between preview and downloaded PDF using the official certificate template (`gitopia-certificate.pdf`).
 
 3. **Automatic Date Insertion:**
    - Automatically populates with current date (e.g. `13 October 2026`) in `Asia/Kolkata` timezone (default) avoiding UTC date skew.
    - Optional administrator setting for official fixed workshop dates.
 
-4. **Unlimited Repeat Downloads:**
-   - No "one-download-only" limitations. Participants can correct typos and re-download their certificate anytime without restriction.
+4. **Secure Single-Use Participant Flow:**
+   - Once a participant downloads their certificate, the session terminates and immediately redirects them back to the portal for security and attendance tracking.
 
 5. **Visual Template & Layout Editor:**
    - Admins can upload custom PNG, JPEG, or PDF certificate templates.
    - Interactive canvas allows clicking anywhere on the certificate to place Name and Date coordinates.
    - Fine-tune controls for X (%), Y (%), font size, font family, color, alignment, and maximum name width.
 
-6. **Secure Session Isolation:**
+6. **Secure Session Isolation & Rate Limiting:**
    - Each session maintains its own access code and hash.
    - Changing/regenerating an access code immediately invalidates the old code for all new access attempts.
    - Inactive sessions reject new participant entries.
@@ -39,7 +39,7 @@ A complete, professional, responsive, full-stack website for generating and down
 
 - **Framework:** Next.js 15 (App Router, Node.js runtime)
 - **Language:** JavaScript
-- **Styling:** Vanilla CSS (GitHub Primer modern aesthetic, light theme with dark accents, responsive on mobile/tablet/desktop)
+- **Styling:** Vanilla CSS (Modern aesthetic, responsive on mobile/tablet/desktop)
 - **Database:** Supabase PostgreSQL (with automatic local file store fallback for out-of-the-box local development)
 - **PDF Engine:** `pdf-lib` (vector-accurate PDF generation with custom page dimensions matching the certificate)
 - **Icons:** `lucide-react`
@@ -79,7 +79,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🗄️ Supabase PostgreSQL Setup (Production)
+## 🗄️ Supabase PostgreSQL Setup
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open the **SQL Editor** in Supabase and run the SQL migration script located in:
@@ -100,11 +100,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 1. Push this repository to GitHub:
    ```bash
-   git init
-   git add .
-   git commit -m "feat: complete GitHub Workshop Certificate Generator"
-   git remote add origin https://github.com/your-username/github-workshop-certificates.git
-   git push -u origin main
+   git push origin main
    ```
 2. Import the repository in [Vercel](https://vercel.com).
 3. Set Environment Variables in Vercel:
