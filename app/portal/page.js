@@ -46,6 +46,34 @@ export default function ParticipantAccessPage() {
     }
   };
 
+  const handleAutoFillAndSubmit = async (demoCode = 'GH-OCT-2026') => {
+    setAccessCode(demoCode);
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/portal/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessCode: demoCode })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Verification failed. Please check the code.');
+        setLoading(false);
+        return;
+      }
+
+      router.push('/portal/certificate');
+    } catch (err) {
+      console.error('Code verification error:', err);
+      setError('A connection error occurred. Please try again.');
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page-wrapper" style={{ background: '#f8fafc' }}>
       {/* Top Header */}
@@ -89,7 +117,7 @@ export default function ParticipantAccessPage() {
           boxShadow: '0 12px 30px rgba(0, 0, 0, 0.05)',
           padding: '36px 32px'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{
               width: '52px',
               height: '52px',
@@ -112,6 +140,49 @@ export default function ParticipantAccessPage() {
             </p>
           </div>
 
+          {/* Quick Demo Banner */}
+          <div style={{
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '10px',
+            padding: '12px 14px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={16} color="#16a34a" />
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#15803d' }}>
+                  Demo Mode
+                </div>
+                <div style={{ fontSize: '11px', color: '#166534' }}>
+                  Code: <code style={{ fontWeight: '700' }}>GH-OCT-2026</code>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAutoFillAndSubmit('GH-OCT-2026')}
+              disabled={loading}
+              className="btn btn-sm"
+              style={{
+                background: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              ⚡ Try Demo
+            </button>
+          </div>
+
           {error && (
             <div className="alert alert-error" style={{ marginBottom: '20px' }}>
               <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -120,11 +191,31 @@ export default function ParticipantAccessPage() {
           )}
 
           <form onSubmit={handleCodeSubmit}>
-            <div className="form-group" style={{ marginBottom: '24px' }}>
-              <label htmlFor="accessCodeInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Access Code</span>
-                <span style={{ fontWeight: 'normal', color: '#64748b', fontSize: '12px' }}>Case-insensitive</span>
-              </label>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label htmlFor="accessCodeInput" className="form-label" style={{ margin: 0 }}>
+                  Access Code
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setAccessCode('GH-OCT-2026')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#0969da',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: 0
+                  }}
+                >
+                  <Sparkles size={13} />
+                  Auto-fill Demo Code
+                </button>
+              </div>
               <input
                 id="accessCodeInput"
                 type="text"
@@ -142,7 +233,7 @@ export default function ParticipantAccessPage() {
                 }}
               />
               <span className="form-hint" style={{ textAlign: 'center', marginTop: '6px' }}>
-                Tip: Codes typically start with <code style={{ background: '#f1f5f9', padding: '2px 5px', borderRadius: '4px' }}>GH-</code>
+                Demo code: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: '700', color: '#0969da' }}>GH-OCT-2026</code>
               </span>
             </div>
 
