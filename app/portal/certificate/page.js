@@ -15,6 +15,7 @@ import {
   FileCheck2,
   RefreshCw
 } from 'lucide-react';
+import { renderPdfToCanvas } from '@/lib/pdfjs-loader';
 
 export default function CertificateWorkspacePage() {
   const router = useRouter();
@@ -67,11 +68,7 @@ export default function CertificateWorkspacePage() {
       let isSubscribed = true;
       setPdfRendering(true);
 
-      import('@/lib/pdfjs-loader')
-        .then(({ renderPdfToCanvas }) => {
-          if (!isSubscribed) return;
-          return renderPdfToCanvas(tPath, pdfCanvasRef.current);
-        })
+      renderPdfToCanvas(tPath, pdfCanvasRef.current)
         .then((res) => {
           if (isSubscribed && res?.aspectRatio) {
             setAspectRatio(res.aspectRatio);

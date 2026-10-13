@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Move
 } from 'lucide-react';
+import { renderPdfToCanvas } from '@/lib/pdfjs-loader';
 
 export default function CertificateLayoutEditorPage({ params }) {
   const router = useRouter();
@@ -83,11 +84,7 @@ export default function CertificateLayoutEditorPage({ params }) {
     if (tPath.toLowerCase().endsWith('.pdf')) {
       let isSubscribed = true;
 
-      import('@/lib/pdfjs-loader')
-        .then(({ renderPdfToCanvas }) => {
-          if (!isSubscribed) return;
-          return renderPdfToCanvas(tPath, pdfBgCanvasRef.current);
-        })
+      renderPdfToCanvas(tPath, pdfBgCanvasRef.current)
         .then((res) => {
           if (isSubscribed && res?.aspectRatio) {
             setAspectRatio(res.aspectRatio);
