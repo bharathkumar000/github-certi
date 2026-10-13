@@ -37,6 +37,14 @@
   ],
   "logs": [
     {
+      "id": "log-1791908252916-u5ho",
+      "session_id": "ws-session-001",
+      "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",
+      "participant_name_masked": "An*** dy",
+      "status": "success",
+      "created_at": "2026-10-13T16:17:32.916Z"
+    },
+    {
       "id": "log-1791907833443-e9ej",
       "session_id": "ws-session-001",
       "session_name": "GitHub Workshop – Session 1 (Git & GitHub Fundamentals)",

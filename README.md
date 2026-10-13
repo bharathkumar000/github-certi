@@ -64,11 +64,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Admin Credentials (Local Development)
+## 🔐 Admin Access Code (Organizer Portal)
 
 - **Login URL:** [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-- **Email:** `admin@githubworkshop.com`
-- **Password:** `WorkshopAdmin2026!`
+- **Admin Access Code:** `CERTIFY-ADMIN-2026`
 
 ---
 

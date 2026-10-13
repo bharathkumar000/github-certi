@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server';
-import { verifyAdminCredentials, createAdminToken, ADMIN_COOKIE_NAME } from '@/lib/auth';
+import { verifyAdminAccessCode, verifyAdminCredentials, createAdminToken, ADMIN_COOKIE_NAME } from '@/lib/auth';
 
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { email, password } = body;
+    const body = await request.json().catch(() => ({}));
+    const accessCode = (body.accessCode || body.code || body.password || '').trim();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required.' },
-        { status: 400 }
-      );
+    let admin = null;
+
+    if (accessCode) {
+      admin = await verifyAdminAccessCode(accessCode);
+    } else if (body.email && body.password) {
+      admin = await verifyAdminCredentials(body.email, body.password);
     }
 
-    const admin = await verifyAdminCredentials(email, password);
     if (!admin) {
       return NextResponse.json(
-        { error: 'Invalid email or password.' },
+        { error: 'Invalid admin access code. Please check and try again.' },
         { status: 401 }
       );
     }

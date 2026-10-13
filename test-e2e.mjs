@@ -64,17 +64,16 @@ async function runTests() {
   });
   console.log(`[Test 6b] Access Code Re-verification for Next Download: ${reVerifyRes.status === 200 ? '✅ PASSED' : '❌ FAILED'}`);
 
-  // Test 7: Admin Login
+  // Test 7: Admin Login via Access Code
   const adminLoginRes = await fetch(`${BASE_URL}/api/admin/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: 'admin@githubworkshop.com',
-      password: 'WorkshopAdmin2026!'
+      accessCode: 'CERTIFY-ADMIN-2026'
     })
   });
   const adminCookie = adminLoginRes.headers.get('set-cookie');
-  console.log(`[Test 7] Admin Authentication: ${adminLoginRes.status === 200 ? '✅ PASSED' : '❌ FAILED'}`);
+  console.log(`[Test 7] Admin Access Code Authentication: ${adminLoginRes.status === 200 ? '✅ PASSED' : '❌ FAILED'}`);
 
   // Test 8: Admin Sessions List & Details
   const adminSessionsRes = await fetch(`${BASE_URL}/api/admin/sessions`, {

@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, KeyRound, AlertCircle, ArrowLeft, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@githubworkshop.com');
-  const [password, setPassword] = useState('WorkshopAdmin2026!');
+  const [accessCode, setAccessCode] = useState('CERTIFY-ADMIN-2026');
+  const [showCode, setShowCode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,27 +21,27 @@ export default function AdminLoginPage() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ accessCode: accessCode.trim() })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Authentication failed. Please check credentials.');
+        setError(data.error || 'Invalid admin access code. Please check and try again.');
         setLoading(false);
         return;
       }
 
       router.push('/admin/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Admin login error:', err);
       setError('An error occurred during authentication. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-wrapper" style={{ background: '#0d1117', color: '#c9d1d9' }}>
+    <div className="page-wrapper" style={{ background: '#0d1117', color: '#c9d1d9', minHeight: '100vh' }}>
       <header style={{ padding: '20px 0', borderBottom: '1px solid #21262d' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', textDecoration: 'none' }}>
@@ -50,19 +50,19 @@ export default function AdminLoginPage() {
             </svg>
             <span style={{ fontWeight: '600', fontSize: '16px' }}>Certify Admin Portal</span>
           </Link>
-          <Link href="/" style={{ color: '#8b949e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Link href="/" style={{ color: '#8b949e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
             <ArrowLeft size={14} /> Back to Home
           </Link>
         </div>
       </header>
 
       <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 16px' }}>
-        <div style={{ maxWidth: '420px', width: '100%' }}>
+        <div style={{ maxWidth: '440px', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
+              width: '52px',
+              height: '52px',
+              borderRadius: '14px',
               background: '#161b22',
               border: '1px solid #30363d',
               display: 'flex',
@@ -71,13 +71,13 @@ export default function AdminLoginPage() {
               margin: '0 auto 16px',
               color: '#58a6ff'
             }}>
-              <ShieldCheck size={24} />
+              <KeyRound size={26} />
             </div>
             <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '6px' }}>
-              Admin Authentication
+              Admin Portal Access
             </h1>
-            <p style={{ fontSize: '14px', color: '#8b949e' }}>
-              Sign in to manage workshop sessions and certificates
+            <p style={{ fontSize: '14px', color: '#8b949e', lineHeight: '1.5' }}>
+              Enter your admin access code to manage workshop sessions, layouts, and certificates
             </p>
           </div>
 
@@ -96,70 +96,111 @@ export default function AdminLoginPage() {
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ color: '#c9d1d9' }}>
-                  Admin Email
-                </label>
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label className="form-label" style={{ color: '#c9d1d9', marginBottom: 0 }}>
+                    Admin Access Code
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setAccessCode('CERTIFY-ADMIN-2026')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#58a6ff',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0
+                    }}
+                  >
+                    <Sparkles size={13} />
+                    Auto-fill Code
+                  </button>
+                </div>
+
                 <div style={{ position: 'relative' }}>
                   <input
-                    type="email"
+                    type={showCode ? 'text' : 'password'}
                     required
                     className="input-text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    placeholder="Enter admin access code"
                     style={{
                       background: '#0d1117',
                       borderColor: '#30363d',
                       color: '#ffffff',
-                      paddingLeft: '36px'
+                      paddingLeft: '38px',
+                      paddingRight: '40px',
+                      fontFamily: 'monospace',
+                      fontSize: '15px',
+                      letterSpacing: '1px'
                     }}
                   />
-                  <Mail size={16} color="#8b949e" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                  <KeyRound size={16} color="#8b949e" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                  <button
+                    type="button"
+                    onClick={() => setShowCode(!showCode)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '10px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#8b949e',
+                      cursor: 'pointer',
+                      padding: '2px'
+                    }}
+                    title={showCode ? 'Hide Code' : 'Show Code'}
+                  >
+                    {showCode ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '24px' }}>
-                <label className="form-label" style={{ color: '#c9d1d9' }}>
-                  Password
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="password"
-                    required
-                    className="input-text"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{
-                      background: '#0d1117',
-                      borderColor: '#30363d',
-                      color: '#ffffff',
-                      paddingLeft: '36px'
-                    }}
-                  />
-                  <Lock size={16} color="#8b949e" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                </div>
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '12px',
+                  color: '#58a6ff',
+                  background: 'rgba(56, 139, 253, 0.1)',
+                  border: '1px solid rgba(56, 139, 253, 0.2)',
+                  padding: '4px 10px',
+                  borderRadius: '16px'
+                }}>
+                  <ShieldCheck size={13} />
+                  Default Access Code: <strong>CERTIFY-ADMIN-2026</strong>
+                </span>
               </div>
 
               <button
                 type="submit"
                 className="btn btn-primary"
                 disabled={loading}
-                style={{ width: '100%', padding: '11px', fontSize: '15px', borderRadius: '6px' }}
+                style={{ width: '100%', padding: '12px', fontSize: '15px', borderRadius: '8px' }}
               >
                 {loading ? (
                   <>
                     <span className="spinner"></span>
-                    Authenticating...
+                    Verifying Code...
                   </>
                 ) : (
-                  'Sign In to Admin Portal'
+                  <>
+                    Sign In to Admin Portal
+                    <ArrowRight size={16} style={{ marginLeft: '6px' }} />
+                  </>
                 )}
               </button>
             </form>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '12px', color: '#8b949e' }}>
-            Protected server-side authorization &bull; Workshop Administrator Access Only
+            Protected organizer authentication &bull; Certify Administrator Access Only
           </div>
         </div>
       </main>
