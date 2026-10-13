@@ -44,26 +44,22 @@ export async function POST(request) {
       certificate_template_path
     } = body;
 
-    if (!session_name || !session_date) {
-      return NextResponse.json(
-        { error: 'Session name and session date are required.' },
-        { status: 400 }
-      );
-    }
+    const finalDate = session_date || new Date().toISOString().split('T')[0];
+    const finalName = (session_name && session_name.trim()) || `Participant Session - ${finalDate}`;
 
     const finalCode = (access_code && access_code.trim())
       ? access_code.trim().toUpperCase()
       : generateRandomAccessCode();
 
     const created = await createSession({
-      session_name: session_name.trim(),
-      session_date,
+      session_name: finalName,
+      session_date: finalDate,
       access_code: finalCode,
       is_active: Boolean(is_active),
       date_mode,
       custom_date_text,
       timezone: timezone || 'Asia/Kolkata',
-      certificate_template_path: certificate_template_path || '/templates/default-certificate.png'
+      certificate_template_path: certificate_template_path || '/templates/gitopia-certificate.pdf'
     });
 
     return NextResponse.json({ success: true, session: created }, { status: 201 });

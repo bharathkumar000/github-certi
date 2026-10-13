@@ -2,86 +2,125 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import AdminNav from '@/components/AdminNav';
 import {
-  Calendar,
-  Layers,
-  CheckCircle2,
-  XCircle,
-  DownloadCloud,
+  KeyRound,
   PlusCircle,
   Copy,
   Check,
-  Edit,
-  Sliders,
-  ExternalLink,
+  Trash2,
+  Sparkles,
+  AlertCircle,
+  CheckCircle2,
   RefreshCw,
-  AlertTriangle,
-  FileCheck
+  Power
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalSessions: 0,
-    activeSessions: 0,
-    inactiveSessions: 0,
-    totalDownloads: 0
-  });
   const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [copiedCodeId, setCopiedCodeId] = useState(null);
-
-  // Modal state for code regeneration confirmation
-  const [regenModalSession, setRegenModalSession] = useState(null);
-  const [regenCustomCode, setRegenCustomCode] = useState('');
-  const [regenerating, setRegenerating] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const fetchDashboardData = async () => {
+  // Form state to create a participant access code
+  const [newCode, setNewCode] = useState('');
+  const [sessionName, setSessionName] = useState('');
+
+  const generateRandomCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'GH-';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    code += '-';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewCode(code);
+  };
+
+  const fetchSessions = async () => {
     try {
       setLoading(true);
-      // Check auth and fetch sessions
-      const [sessionsRes, statsRes] = await Promise.all([
-        fetch('/api/admin/sessions'),
-        fetch('/api/admin/logs')
-      ]);
+      const res = await fetch('/api/admin/sessions');
 
-      if (sessionsRes.status === 401) {
+      if (res.status === 401) {
         router.replace('/admin/login');
         return;
       }
 
-      const sessionsData = await sessionsRes.json();
-      const logsData = await statsRes.json();
-
-      setSessions(sessionsData.sessions || []);
-      setStats(logsData.stats || {
-        totalSessions: (sessionsData.sessions || []).length,
-        activeSessions: (sessionsData.sessions || []).filter(s => s.is_active).length,
-        inactiveSessions: (sessionsData.sessions || []).filter(s => !s.is_active).length,
-        totalDownloads: 0
-      });
+      const data = await res.json();
+      setSessions(data.sessions || []);
     } catch (err) {
-      console.error('Failed to fetch dashboard data:', err);
+      console.error('Failed to load sessions:', err);
+      setErrorMessage('Failed to load access codes. Please refresh.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchSessions();
   }, []);
 
-  const handleCopyCode = (code, sessionId) => {
+  const handleCreateCode = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    setErrorMessage('');
+    setActionMessage('');
+
+    try {
+      const codeToUse = (newCode && newCode.trim())
+        ? newCode.trim().toUpperCase()
+        : undefined;
+
+      const res = await fetch('/api/admin/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_code: codeToUse,
+          session_name: sessionName.trim() || undefined,
+          session_date: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMessage(data.error || 'Failed to create access code.');
+        setCreating(false);
+        return;
+      }
+
+      const createdCode = data.session?.raw_code_for_admin || codeToUse;
+      setActionMessage(`🎉 Access code created successfully: ${createdCode}`);
+      setNewCode('');
+      setSessionName('');
+      fetchSessions();
+
+      // Automatically copy to clipboard for convenience
+      if (createdCode && navigator.clipboard) {
+        navigator.clipboard.writeText(createdCode).catch(() => {});
+      }
+    } catch (err) {
+      console.error('Error creating code:', err);
+      setErrorMessage('An unexpected error occurred while creating code.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleCopyCode = (code, id) => {
     if (!code) return;
     navigator.clipboard.writeText(code);
-    setCopiedCodeId(sessionId);
+    setCopiedCodeId(id);
     setTimeout(() => setCopiedCodeId(null), 2500);
   };
 
-  const handleToggleStatus = async (session) => {
+  const handleToggleActive = async (session) => {
     try {
       const newStatus = !session.is_active;
       const res = await fetch(`/api/admin/sessions/${session.id}`, {
@@ -91,411 +130,391 @@ export default function AdminDashboardPage() {
       });
 
       if (res.ok) {
-        setActionMessage(`Session "${session.session_name}" ${newStatus ? 'activated' : 'deactivated'}.`);
-        fetchDashboardData();
-        setTimeout(() => setActionMessage(''), 4000);
+        setActionMessage(`Code ${session.raw_code_for_admin || ''} is now ${newStatus ? 'Active' : 'Disabled'}.`);
+        fetchSessions();
+        setTimeout(() => setActionMessage(''), 3000);
       }
     } catch (err) {
-      console.error('Failed to toggle session status:', err);
+      console.error('Failed to update status:', err);
     }
   };
 
-  const handleConfirmRegenerateCode = async () => {
-    if (!regenModalSession) return;
-    setRegenerating(true);
+  const handleDeleteSession = async (session) => {
+    const code = session.raw_code_for_admin || 'this';
+    if (!confirm(`Are you sure you want to delete access code "${code}"? Participants will no longer be able to use it.`)) {
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/admin/sessions/${regenModalSession.id}/code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          custom_code: regenCustomCode ? regenCustomCode.trim() : undefined
-        })
+      const res = await fetch(`/api/admin/sessions/${session.id}`, {
+        method: 'DELETE'
       });
 
-      const data = await res.json();
       if (res.ok) {
-        setActionMessage(`Access code for "${regenModalSession.session_name}" updated to: ${data.new_code}. Previous code has been invalidated immediately.`);
-        setRegenModalSession(null);
-        setRegenCustomCode('');
-        fetchDashboardData();
-        setTimeout(() => setActionMessage(''), 6000);
-      } else {
-        alert(data.error || 'Failed to update access code');
+        setActionMessage(`Access code "${code}" deleted.`);
+        fetchSessions();
+        setTimeout(() => setActionMessage(''), 3000);
       }
     } catch (err) {
-      console.error('Error updating code:', err);
-    } finally {
-      setRegenerating(false);
+      console.error('Failed to delete code:', err);
     }
   };
 
   return (
-    <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+    <div className="page-wrapper" style={{ background: '#f8fafc', minHeight: '100vh' }}>
       <AdminNav />
 
-      <main className="main-content" style={{ padding: '32px 0 60px' }}>
-        <div className="container">
+      <main className="main-content" style={{ padding: '36px 0 60px' }}>
+        <div className="container" style={{ maxWidth: '820px' }}>
           
-          {/* Header */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2328' }}>
-                Workshop Dashboard
-              </h1>
-              <p style={{ fontSize: '14px', color: '#656d76', marginTop: '4px' }}>
-                Manage workshop sessions, access codes, certificate templates, and monitor downloads.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={fetchDashboardData}
-                className="btn btn-secondary btn-sm"
-                title="Refresh Data"
-              >
-                <RefreshCw size={14} />
-                Refresh
-              </button>
-              <Link href="/admin/sessions/new" className="btn btn-primary">
-                <PlusCircle size={16} />
-                Create New Session
-              </Link>
-            </div>
+          {/* Page Heading */}
+          <div style={{ marginBottom: '28px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', marginBottom: '6px' }}>
+              Participant Access Codes
+            </h1>
+            <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+              Create and share access codes for workshop participants to generate and download their certificates.
+            </p>
           </div>
 
+          {/* Alert Messages */}
           {actionMessage && (
-            <div className="alert alert-success" style={{ marginBottom: '24px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '12px 16px',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              color: '#15803d',
+              fontSize: '14px',
+              marginBottom: '20px'
+            }}>
               <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
               <div>{actionMessage}</div>
             </div>
           )}
 
-          {/* Stats Cards Grid */}
+          {errorMessage && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '12px 16px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              color: '#b91c1c',
+              fontSize: '14px',
+              marginBottom: '20px'
+            }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <div>{errorMessage}</div>
+            </div>
+          )}
+
+          {/* CARD 1: Create New Access Code */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '16px',
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+            padding: '24px 28px',
             marginBottom: '32px'
           }}>
-            <div className="card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#656d76' }}>TOTAL SESSIONS</span>
-                <Layers size={18} color="#0969da" />
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#1f2328', marginTop: '8px' }}>
-                {stats.totalSessions}
-              </div>
-              <div style={{ fontSize: '12px', color: '#8c959f', marginTop: '4px' }}>
-                Configured workshops
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+              <KeyRound size={20} color="#16a34a" />
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+                Create New Access Code
+              </h2>
             </div>
 
-            <div className="card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#656d76' }}>ACTIVE SESSIONS</span>
-                <CheckCircle2 size={18} color="#238636" />
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#238636', marginTop: '8px' }}>
-                {stats.activeSessions}
-              </div>
-              <div style={{ fontSize: '12px', color: '#8c959f', marginTop: '4px' }}>
-                Accepting participant entries
-              </div>
-            </div>
+            <form onSubmit={handleCreateCode}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                {/* Access Code Input */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#334155' }}>
+                      Access Code *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateRandomCode}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#2563eb',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        padding: 0
+                      }}
+                    >
+                      <Sparkles size={12} />
+                      Generate Random
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. GH-NOV-2026"
+                    value={newCode}
+                    onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '14px',
+                      fontFamily: 'monospace',
+                      fontWeight: '600',
+                      letterSpacing: '1px'
+                    }}
+                  />
+                </div>
 
-            <div className="card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#656d76' }}>INACTIVE SESSIONS</span>
-                <XCircle size={18} color="#cf222e" />
+                {/* Session Label Input */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                    Workshop / Batch Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Workshop – Batch 1"
+                    value={sessionName}
+                    onChange={(e) => setSessionName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#656d76', marginTop: '8px' }}>
-                {stats.inactiveSessions}
-              </div>
-              <div style={{ fontSize: '12px', color: '#8c959f', marginTop: '4px' }}>
-                Closed / Access blocked
-              </div>
-            </div>
 
-            <div className="card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#656d76' }}>TOTAL GENERATED</span>
-                <DownloadCloud size={18} color="#8250df" />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '10px 22px',
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {creating ? (
+                    'Creating...'
+                  ) : (
+                    <>
+                      <PlusCircle size={16} />
+                      Create Participant Access Code
+                    </>
+                  )}
+                </button>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#8250df', marginTop: '8px' }}>
-                {stats.totalDownloads}
-              </div>
-              <div style={{ fontSize: '12px', color: '#8c959f', marginTop: '4px' }}>
-                Certificates generated
-              </div>
-            </div>
+            </form>
           </div>
 
-          {/* Sessions List Table */}
-          <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+          {/* CARD 2: Access Codes List */}
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+            overflow: 'hidden'
+          }}>
             <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #d0d7de',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: '#f6f8fa'
+              padding: '16px 24px',
+              borderBottom: '1px solid #f1f5f9',
+              background: '#fafbfc'
             }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#1f2328' }}>
-                Workshop Sessions ({sessions.length})
-              </h2>
-              <span style={{ fontSize: '12px', color: '#656d76' }}>
-                Independent access codes &amp; custom templates
-              </span>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+                  Participant Access Codes ({sessions.length})
+                </h3>
+              </div>
+              <button
+                onClick={fetchSessions}
+                disabled={loading}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '13px'
+                }}
+              >
+                <RefreshCw size={13} className={loading ? 'spinner' : ''} />
+                Refresh
+              </button>
             </div>
 
-            {loading ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#656d76' }}>
-                <span className="spinner" style={{ borderColor: '#238636', borderTopColor: 'transparent' }}></span>
-                <p style={{ marginTop: '12px', fontSize: '14px' }}>Loading workshop sessions...</p>
+            {loading && sessions.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                Loading access codes...
               </div>
             ) : sessions.length === 0 ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                <p style={{ fontSize: '15px', color: '#656d76', marginBottom: '16px' }}>
-                  No workshop sessions created yet.
-                </p>
-                <Link href="/admin/sessions/new" className="btn btn-primary">
-                  <PlusCircle size={16} />
-                  Create Your First Session
-                </Link>
+              <div style={{ padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
+                <KeyRound size={32} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
+                <p style={{ margin: '0 0 12px', fontWeight: '500' }}>No access codes created yet.</p>
+                <button
+                  onClick={generateRandomCode}
+                  className="btn btn-secondary btn-sm"
+                  style={{ borderRadius: '6px' }}
+                >
+                  Generate First Code
+                </button>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #d0d7de', background: '#f6f8fa', color: '#656d76' }}>
-                      <th style={{ padding: '12px 16px', fontWeight: '600' }}>Session Name</th>
-                      <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
-                      <th style={{ padding: '12px 16px', fontWeight: '600' }}>Access Code</th>
-                      <th style={{ padding: '12px 16px', fontWeight: '600' }}>Status</th>
-                      <th style={{ padding: '12px 16px', fontWeight: '600' }}>Template</th>
-                      <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'right' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sessions.map((s) => (
-                      <tr key={s.id} style={{ borderBottom: '1px solid #e1e4e8', transition: 'background 0.15s' }}>
-                        {/* Name */}
-                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2328' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>{s.session_name}</span>
-                          </div>
-                          <span style={{ fontSize: '11px', color: '#8c959f', fontWeight: 'normal' }}>
-                            Created: {new Date(s.created_at).toLocaleDateString()}
+              <div style={{ divideY: '1px solid #f1f5f9' }}>
+                {sessions.map((session) => {
+                  const code = session.raw_code_for_admin || 'GH-OCT-2026';
+                  const isCopied = copiedCodeId === session.id;
+
+                  return (
+                    <div
+                      key={session.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '18px 24px',
+                        borderBottom: '1px solid #f1f5f9',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                      }}
+                    >
+                      {/* Left: Code badge and session label */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          background: '#f8fafc',
+                          border: '1px solid #cbd5e1',
+                          padding: '6px 14px',
+                          borderRadius: '8px'
+                        }}>
+                          <span style={{
+                            fontFamily: 'monospace',
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            color: '#0f172a',
+                            letterSpacing: '0.8px'
+                          }}>
+                            {code}
                           </span>
-                        </td>
-
-                        {/* Date */}
-                        <td style={{ padding: '16px', color: '#656d76' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Calendar size={14} color="#656d76" />
-                            <span>{s.session_date}</span>
-                          </div>
-                          <span style={{ fontSize: '11px', color: '#8c959f' }}>
-                            {s.date_mode === 'custom' ? 'Fixed Date' : 'Auto Today'}
-                          </span>
-                        </td>
-
-                        {/* Access Code */}
-                        <td style={{ padding: '16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <code style={{
-                              background: '#f3f4f6',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '13px',
-                              fontWeight: '700',
-                              color: '#0969da',
-                              fontFamily: 'monospace'
-                            }}>
-                              {s.raw_code_for_admin || 'PROTECTED'}
-                            </code>
-                            {s.raw_code_for_admin && (
-                              <button
-                                onClick={() => handleCopyCode(s.raw_code_for_admin, s.id)}
-                                className="btn btn-secondary btn-sm"
-                                style={{ padding: '3px 8px', fontSize: '11px' }}
-                                title="Copy Access Code"
-                              >
-                                {copiedCodeId === s.id ? (
-                                  <>
-                                    <Check size={12} color="#238636" />
-                                    Copied!
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={12} />
-                                    Copy
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                          <div style={{ marginTop: '4px' }}>
-                            <button
-                              onClick={() => {
-                                setRegenModalSession(s);
-                                setRegenCustomCode('');
-                              }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#0969da',
-                                fontSize: '11px',
-                                cursor: 'pointer',
-                                padding: 0,
-                                textDecoration: 'underline'
-                              }}
-                            >
-                              Regenerate / Change Code
-                            </button>
-                          </div>
-                        </td>
-
-                        {/* Status */}
-                        <td style={{ padding: '16px' }}>
                           <button
-                            onClick={() => handleToggleStatus(s)}
+                            type="button"
+                            onClick={() => handleCopyCode(code, session.id)}
                             style={{
-                              background: 'none',
-                              border: 'none',
+                              background: isCopied ? '#dcfce7' : '#ffffff',
+                              border: isCopied ? '1px solid #86efac' : '1px solid #cbd5e1',
+                              color: isCopied ? '#15803d' : '#475569',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
                               cursor: 'pointer',
-                              padding: 0
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              transition: 'all 0.15s ease'
                             }}
-                            title={`Click to ${s.is_active ? 'deactivate' : 'activate'}`}
+                            title="Copy access code"
                           >
-                            {s.is_active ? (
-                              <span className="badge badge-active">
-                                <CheckCircle2 size={12} /> Active
-                              </span>
+                            {isCopied ? (
+                              <>
+                                <Check size={13} color="#15803d" />
+                                Copied!
+                              </>
                             ) : (
-                              <span className="badge badge-inactive">
-                                <XCircle size={12} /> Inactive
-                              </span>
+                              <>
+                                <Copy size={13} />
+                                Copy
+                              </>
                             )}
                           </button>
-                        </td>
+                        </div>
 
-                        {/* Template Status */}
-                        <td style={{ padding: '16px' }}>
-                          <span className="badge badge-purple" style={{ fontSize: '11px' }}>
-                            <FileCheck size={12} />
-                            {s.certificate_template_path?.includes('/uploads/') ? 'Custom Upload' : 'Default Official'}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td style={{ padding: '16px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
-                            <Link
-                              href={`/admin/sessions/${s.id}/editor`}
-                              className="btn btn-secondary btn-sm"
-                              title="Visual Certificate Template & Layout Editor"
-                            >
-                              <Sliders size={13} />
-                              Layout Editor
-                            </Link>
-
-                            <Link
-                              href={`/admin/sessions/${s.id}/edit`}
-                              className="btn btn-secondary btn-sm"
-                              title="Edit Session Details"
-                            >
-                              <Edit size={13} />
-                              Edit
-                            </Link>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>
+                            {session.session_name || 'Workshop Session'}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            Created: {session.session_date || 'Active'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Active/Inactive badge & delete action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(session)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '16px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            border: session.is_active ? '1px solid #86efac' : '1px solid #cbd5e1',
+                            background: session.is_active ? '#f0fdf4' : '#f1f5f9',
+                            color: session.is_active ? '#15803d' : '#64748b'
+                          }}
+                          title="Click to toggle active status"
+                        >
+                          <Power size={11} />
+                          {session.is_active ? 'Active' : 'Disabled'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSession(session)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: '6px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                          title="Delete access code"
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </main>
-
-      {/* Confirmation Dialog for Changing Access Code */}
-      {regenModalSession && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cf222e', marginBottom: '16px' }}>
-              <AlertTriangle size={24} />
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1f2328' }}>
-                Change Session Access Code
-              </h3>
-            </div>
-
-            <p style={{ fontSize: '14px', color: '#475569', marginBottom: '16px', lineHeight: '1.5' }}>
-              Are you sure you want to change the access code for <strong>{regenModalSession.session_name}</strong>?
-            </p>
-
-            <div style={{
-              background: '#ffebe9',
-              border: '1px solid rgba(207, 34, 46, 0.2)',
-              borderRadius: '8px',
-              padding: '12px 14px',
-              fontSize: '13px',
-              color: '#cf222e',
-              marginBottom: '20px'
-            }}>
-              <strong>Immediate Invalidation:</strong> Once changed, the previous access code will stop working immediately for all new access attempts. Only participants with the new code will be able to enter this session.
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label className="form-label">
-                Custom Code (Leave empty to auto-generate random code)
-              </label>
-              <input
-                type="text"
-                className="input-text input-code"
-                placeholder="e.g. GH-OCT-NEW"
-                value={regenCustomCode}
-                onChange={(e) => setRegenCustomCode(e.target.value.toUpperCase())}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setRegenModalSession(null)}
-                className="btn btn-secondary"
-                disabled={regenerating}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmRegenerateCode}
-                className="btn btn-danger"
-                disabled={regenerating}
-              >
-                {regenerating ? (
-                  <>
-                    <span className="spinner"></span>
-                    Invalidating &amp; Updating...
-                  </>
-                ) : (
-                  'Confirm & Invalidate Old Code'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
