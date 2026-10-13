@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Award, ArrowRight, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Award, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -152,46 +152,6 @@ export default function HomePage() {
                 <Sparkles size={14} color="#16a34a" />
                 Demo Access Code ready: <strong>GH-OCT-2026</strong>
               </span>
-            </div>
-
-            {/* Feature Highlights Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '20px',
-              paddingTop: '32px',
-              borderTop: '1px solid #f1f5f9',
-              textAlign: 'left'
-            }}>
-              <div style={{ padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Sparkles size={18} color="#0969da" />
-                  <strong style={{ fontSize: '14px', color: '#1e293b' }}>Live Real-Time Preview</strong>
-                </div>
-                <p style={{ fontSize: '13px', color: '#64748b' }}>
-                  Type your name and preview the exact certificate design live before downloading.
-                </p>
-              </div>
-
-              <div style={{ padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <CheckCircle2 size={18} color="#238636" />
-                  <strong style={{ fontSize: '14px', color: '#1e293b' }}>Unlimited Downloads</strong>
-                </div>
-                <p style={{ fontSize: '13px', color: '#64748b' }}>
-                  Download multiple times whenever required or fix typos with no restrictions.
-                </p>
-              </div>
-
-              <div style={{ padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <ShieldCheck size={18} color="#8250df" />
-                  <strong style={{ fontSize: '14px', color: '#1e293b' }}>Session-Protected</strong>
-                </div>
-                <p style={{ fontSize: '13px', color: '#64748b' }}>
-                  Secure rate-limited access codes guarantee verified participation.
-                </p>
-              </div>
             </div>
           </div>
         </div>
