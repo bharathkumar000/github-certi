@@ -313,13 +313,9 @@ export default function CertificateWorkspacePage() {
                   fontWeight: '600',
                   color: '#334155',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
+                  alignItems: 'center'
                 }}>
                   <span>{displayDate || '13 October 2026'}</span>
-                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
-                    {sessionData?.timezone || 'Asia/Kolkata'}
-                  </span>
                 </div>
                 <span className="form-hint" style={{ marginTop: '4px' }}>
                   Auto-populated accurately for the workshop date.
@@ -511,19 +507,6 @@ export default function CertificateWorkspacePage() {
                     {displayDate}
                   </div>
                 )}
-              </div>
-
-              {/* Preview Instruction Note */}
-              <div style={{
-                marginTop: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                fontSize: '12px',
-                color: '#64748b'
-              }}>
-                <span>Session: {sessionData?.session_name}</span>
-                <span>Timezone: {sessionData?.timezone || 'Asia/Kolkata'}</span>
               </div>
             </div>
           </div>
