@@ -1,6 +1,22 @@
 {
   "sessions": [
     {
+      "id": "ws-1791946528738",
+      "session_name": "Test 30s Session",
+      "session_date": "2026-10-14",
+      "access_code_hash": "2757a30c79c0d0d8d54dd8edd06aa53a84dcd9c69be0b1a270608e26fcf1062d",
+      "raw_code_for_admin": "999888",
+      "is_active": false,
+      "expires_at": "2026-10-14T02:55:58.738Z",
+      "duration_minutes": 0.5,
+      "certificate_template_path": "/templates/gitopia-certificate.pdf",
+      "date_mode": "auto_current",
+      "custom_date_text": "",
+      "timezone": "Asia/Kolkata",
+      "created_at": "2026-10-14T02:55:28.738Z",
+      "updated_at": "2026-10-14T02:55:28.738Z"
+    },
+    {
       "id": "ws-1791946044777",
       "session_name": "bbb",
       "session_date": "2026-10-14",
@@ -85,6 +101,24 @@
       "date_color": "#334155",
       "date_alignment": "left",
       "updated_at": "2026-10-14T02:47:24.778Z"
+    },
+    {
+      "id": "layout-1791946528738",
+      "session_id": "ws-1791946528738",
+      "name_x": 7.25,
+      "name_y": 50.5,
+      "name_font_family": "TeX Gyre Termes",
+      "name_font_size": 52,
+      "name_color": "#111827",
+      "name_alignment": "left",
+      "name_max_width": 85,
+      "date_x": 74.2,
+      "date_y": 82.5,
+      "date_font_family": "Helvetica",
+      "date_font_size": 13,
+      "date_color": "#334155",
+      "date_alignment": "left",
+      "updated_at": "2026-10-14T02:55:28.738Z"
     }
   ],
   "logs": [
