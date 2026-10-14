@@ -4,7 +4,7 @@ import { verifyAdminAccessCode, verifyAdminCredentials, createAdminToken, ADMIN_
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const accessCode = (body.accessCode || body.code || body.password || '').trim();
+    const accessCode = (body.accessKey || body.accessCode || body.code || body.password || '').trim();
 
     let admin = null;
 
@@ -16,7 +16,7 @@ export async function POST(request) {
 
     if (!admin) {
       return NextResponse.json(
-        { error: 'Invalid admin access code. Please check and try again.' },
+        { error: 'Invalid admin access key. Please check and try again.' },
         { status: 401 }
       );
     }
@@ -36,7 +36,8 @@ export async function POST(request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 8 // 8 hours
+      // REMOVED maxAge to make it session-only cookie
+      // This forces re-authentication on browser close/reopen and every refresh
     });
 
     return response;

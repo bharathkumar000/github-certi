@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { checkRateLimit, resetRateLimit } from '@/lib/rate-limit';
 import { findSessionByAccessCode } from '@/lib/db';
-import { createParticipantToken, PARTICIPANT_COOKIE_NAME } from '@/lib/auth';
+import { createParticipantToken, PARTICIPANT_COOKIE_NAME, ADMIN_COOKIE_NAME, verifyAdminToken, DEVICE_DOWNLOADED_COOKIE_NAME } from '@/lib/auth';
 
 export async function POST(request) {
   try {
@@ -19,6 +20,23 @@ export async function POST(request) {
 
     const body = await request.json().catch(() => ({}));
     const accessCode = body.accessCode ? body.accessCode.trim().toUpperCase() : '';
+    const clientDeviceDownloaded = Boolean(body.clientDeviceDownloaded);
+
+    // Enforce 1-download-per-device policy (computer & mobile)
+    const cookieStore = await cookies();
+    const hasDeviceDownloadedCookie = cookieStore.get(DEVICE_DOWNLOADED_COOKIE_NAME)?.value === 'true';
+    const adminToken = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+    const admin = await verifyAdminToken(adminToken);
+
+    if ((hasDeviceDownloadedCookie || clientDeviceDownloaded) && !admin) {
+      return NextResponse.json(
+        {
+          error: 'Download limit reached: A certificate has already been downloaded from this mobile device or computer. Each participant is strictly limited to 1 certificate download.',
+          isDeviceBlocked: true
+        },
+        { status: 403 }
+      );
+    }
 
     if (!accessCode) {
       return NextResponse.json(
@@ -37,9 +55,16 @@ export async function POST(request) {
       );
     }
 
+    if (session.expires_at && new Date(session.expires_at).getTime() <= Date.now()) {
+      return NextResponse.json(
+        { error: 'This access code has expired. Please contact your session organizer for a new access code.' },
+        { status: 403 }
+      );
+    }
+
     if (!session.is_active) {
       return NextResponse.json(
-        { error: 'This workshop session is currently inactive or closed. Please contact your organizer.' },
+        { error: 'This workshop access code is inactive or has expired. Please contact your organizer.' },
         { status: 403 }
       );
     }

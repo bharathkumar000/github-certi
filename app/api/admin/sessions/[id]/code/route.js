@@ -21,10 +21,10 @@ export async function POST(request, { params }) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    let newCode = body.custom_code ? body.custom_code.trim().toUpperCase() : generateRandomAccessCode();
+    let newCode = body.custom_code ? String(body.custom_code).trim().replace(/\D/g, '') : generateRandomAccessCode();
 
-    if (newCode.length < 4) {
-      return NextResponse.json({ error: 'Access code must be at least 4 characters long.' }, { status: 400 });
+    if (newCode.length !== 6) {
+      return NextResponse.json({ error: 'Access code must be a 6-digit number.' }, { status: 400 });
     }
 
     const newHash = hashAccessCode(newCode);

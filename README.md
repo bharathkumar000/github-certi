@@ -64,17 +64,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Admin Access Code (Organizer Portal)
+## 🔐 Admin Access Key (Organizer Portal)
 
-- **Login URL:** [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-- **Admin Access Code:** `CERTIFY-ADMIN-2026`
+- **Admin Portal URL:** [http://localhost:3000/admin](http://localhost:3000/admin)
+- **Admin Access Key:** `849201` (or `CERTIFY-ADMIN-2026`)
 
 ---
 
 ## 🔑 Default Participant Access Code
 
 - **Participant URL:** [http://localhost:3000/portal](http://localhost:3000/portal)
-- **Access Code:** `GH-OCT-2026`
+- **Access Code (6 digits):** `849201`
 
 ---
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { PARTICIPANT_COOKIE_NAME, verifyParticipantToken, ADMIN_COOKIE_NAME, verifyAdminToken } from '@/lib/auth';
+import { PARTICIPANT_COOKIE_NAME, verifyParticipantToken, ADMIN_COOKIE_NAME, verifyAdminToken, DEVICE_DOWNLOADED_COOKIE_NAME } from '@/lib/auth';
 import { getSessionById, getCertificateLayout, logCertificateDownload } from '@/lib/db';
 import { resolveCertificateDate } from '@/lib/date-utils';
 import { generateCertificatePdf } from '@/lib/certificate-generator';
@@ -21,6 +21,18 @@ export async function POST(request) {
     let sessionId = participant?.sessionId;
     if (!sessionId && admin && requestedSessionId) {
       sessionId = requestedSessionId;
+    }
+
+    // Check 1-download-per-device restriction for participants
+    const isDeviceDownloaded = cookieStore.get(DEVICE_DOWNLOADED_COOKIE_NAME)?.value === 'true';
+    if (isDeviceDownloaded && !admin) {
+      return NextResponse.json(
+        {
+          error: 'Download limit exceeded: A certificate has already been downloaded from this mobile device or computer. Each participant is strictly limited to 1 download.',
+          isDeviceBlocked: true
+        },
+        { status: 403 }
+      );
     }
 
     if (!sessionId) {
@@ -96,11 +108,19 @@ export async function POST(request) {
     });
 
     // Invalidate participant session cookie upon download so session ends
+    // and record persistent 1-year device lock cookie
     if (!admin) {
       response.cookies.set(PARTICIPANT_COOKIE_NAME, '', {
         path: '/',
         maxAge: 0,
         httpOnly: true,
+        sameSite: 'lax'
+      });
+
+      response.cookies.set(DEVICE_DOWNLOADED_COOKIE_NAME, 'true', {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        httpOnly: false,
         sameSite: 'lax'
       });
     }

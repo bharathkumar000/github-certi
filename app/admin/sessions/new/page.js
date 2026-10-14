@@ -21,8 +21,12 @@ export default function CreateSessionPage() {
 
   const [sessionName, setSessionName] = useState('GitHub Workshop – Session 2');
   const [sessionDate, setSessionDate] = useState('2026-10-13');
-  const [accessCode, setAccessCode] = useState('GH-WS-9482');
-  const [isActive, setIsActive] = useState(true);
+  const [accessCode, setAccessCode] = useState('');
+  const [chosenCode, setChosenCode] = useState('');
+  const [timerDuration, setTimerDuration] = useState('none');
+  const [isActive, setIsActive] = useState(false);
+  const [activatedAt, setActivatedAt] = useState(null);
+  const [savingActivate, setSavingActivate] = useState(false);
   const [dateMode, setDateMode] = useState('auto_current');
   const [customDateText, setCustomDateText] = useState('');
   const [timezone, setTimezone] = useState('Asia/Kolkata');
@@ -33,12 +37,9 @@ export default function CreateSessionPage() {
   const [error, setError] = useState('');
 
   const generateRandomCode = () => {
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    setAccessCode(`GH-WS-${code}`);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setAccessCode(code);
+    setChosenCode(code);
   };
 
   const handleFileChange = (e) => {
@@ -114,7 +115,7 @@ export default function CreateSessionPage() {
   };
 
   return (
-    <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+    <div className="page-wrapper" style={{ background: '#080b11', minHeight: '100vh', color: '#f1f5f9' }}>
       <AdminNav />
 
       <main className="main-content" style={{ padding: '32px 0 60px' }}>
@@ -128,7 +129,7 @@ export default function CreateSessionPage() {
                 alignItems: 'center',
                 gap: '6px',
                 fontSize: '13px',
-                color: '#656d76',
+                color: '#8b9cb3',
                 textDecoration: 'none'
               }}
             >
@@ -136,12 +137,12 @@ export default function CreateSessionPage() {
             </Link>
           </div>
 
-          <div className="card" style={{ padding: '32px' }}>
-            <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #d0d7de' }}>
-              <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2328' }}>
+          <div className="card" style={{ padding: '32px', background: '#0d1520', border: '1px solid #1e314b', boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)' }}>
+            <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #162334' }}>
+              <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#f1f5f9' }}>
                 Create Workshop Session
               </h1>
-              <p style={{ fontSize: '14px', color: '#656d76', marginTop: '4px' }}>
+              <p style={{ fontSize: '14px', color: '#8b9cb3', marginTop: '4px' }}>
                 Set up a new workshop session with its independent participant access code and certificate template.
               </p>
             </div>
@@ -203,19 +204,19 @@ export default function CreateSessionPage() {
 
               {/* Access Code Management */}
               <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: '#070c14',
+                border: '1px solid #1e314b',
                 borderRadius: '8px',
                 padding: '20px',
                 margin: '20px 0'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <KeyRound size={18} color="#0969da" />
-                  <span style={{ fontWeight: '600', fontSize: '14px', color: '#1f2328' }}>
+                  <KeyRound size={18} color="#00ff66" />
+                  <span style={{ fontWeight: '600', fontSize: '14px', color: '#f1f5f9' }}>
                     Participant Access Code
                   </span>
                 </div>
-                <p style={{ fontSize: '13px', color: '#656d76', marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#8b9cb3', marginBottom: '16px' }}>
                   Each session requires an independent access code. Participants use this to unlock their certificate.
                 </p>
 
@@ -224,19 +225,40 @@ export default function CreateSessionPage() {
                     type="text"
                     required
                     className="input-text input-code"
-                    placeholder="e.g. GH-OCT-2026"
+                    placeholder="e.g. 583921 (6-digit number)"
                     value={accessCode}
-                    onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                    style={{ flex: 1, fontSize: '16px' }}
+                    onChange={(e) => setAccessCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    style={{ flex: 1, fontSize: '18px', letterSpacing: '3px', fontWeight: '700', color: '#00ff66' }}
                   />
                   <button
                     type="button"
                     onClick={generateRandomCode}
                     className="btn btn-secondary"
                   >
-                    <Sparkles size={14} />
+                    <Sparkles size={14} color="#38bdf8" />
                     Auto-Generate
                   </button>
+                </div> {/* closes flex div for input */}
+
+                {/* Auto-Deactivate Timer */}
+                <div className="form-group" style={{ marginTop: '16px', marginBottom: '8px' }}>
+                  <label className="form-label">
+                    Auto-Deactivate Timer
+                  </label>
+                  <select
+                    className="select-input"
+                    value={timerDuration}
+                    onChange={(e) => setTimerDuration(e.target.value)}
+                  >
+                    <option value="30">⏱️ 30 Seconds</option>
+                    <option value="45">⏱️ 45 Seconds</option>
+                    <option value="60">⏱️ 1 Minute</option>
+                    <option value="120">⏱️ 2 Minutes</option>
+                    <option value="none">♾️ No Timer (Never Expire)</option>
+                  </select>
+                  <span className="form-hint">
+                    The access code will automatically expire and deactivate after this timer.
+                  </span>
                 </div>
               </div>
 
@@ -295,30 +317,31 @@ export default function CreateSessionPage() {
 
               {/* Certificate Template Upload */}
               <div style={{
-                border: '1px dashed #d0d7de',
+                border: '1px dashed #1e314b',
                 borderRadius: '8px',
                 padding: '24px',
                 textAlign: 'center',
                 margin: '24px 0',
-                background: '#fafbfc'
+                background: '#070c14'
               }}>
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '10px',
-                  background: '#f1f5f9',
+                  background: '#0d1520',
+                  border: '1px solid #1e314b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   margin: '0 auto 12px',
-                  color: '#0969da'
+                  color: '#38bdf8'
                 }}>
                   <Upload size={22} />
                 </div>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#1f2328', marginBottom: '6px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#f1f5f9', marginBottom: '6px' }}>
                   Upload Custom Certificate Template (Optional)
                 </h3>
-                <p style={{ fontSize: '13px', color: '#656d76', maxWidth: '500px', margin: '0 auto 16px' }}>
+                <p style={{ fontSize: '13px', color: '#8b9cb3', maxWidth: '500px', margin: '0 auto 16px' }}>
                   Upload your high-resolution PNG, JPEG, or PDF certificate design. If left empty, the official default GitHub Workshop certificate template is used automatically.
                 </p>
 
@@ -337,7 +360,7 @@ export default function CreateSessionPage() {
 
                 {templatePreview && (
                   <div style={{ marginTop: '16px' }}>
-                    <p style={{ fontSize: '12px', color: '#238636', fontWeight: '500', marginBottom: '8px' }}>
+                    <p style={{ fontSize: '12px', color: '#00ff66', fontWeight: '500', marginBottom: '8px' }}>
                       Template Selected Preview:
                     </p>
                     <img
@@ -346,8 +369,8 @@ export default function CreateSessionPage() {
                       style={{
                         maxHeight: '180px',
                         borderRadius: '6px',
-                        border: '1px solid #d0d7de',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        border: '1px solid #1e314b',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
                       }}
                     />
                   </div>
@@ -360,7 +383,7 @@ export default function CreateSessionPage() {
                 justifyContent: 'flex-end',
                 gap: '12px',
                 paddingTop: '20px',
-                borderTop: '1px solid #d0d7de'
+                borderTop: '1px solid #162334'
               }}>
                 <Link href="/admin/dashboard" className="btn btn-secondary">
                   Cancel

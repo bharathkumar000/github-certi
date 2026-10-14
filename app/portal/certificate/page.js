@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   ArrowLeft,
   FileCheck2,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  ShieldAlert
 } from 'lucide-react';
 import { renderPdfToCanvas } from '@/lib/pdfjs-loader';
 
@@ -27,6 +29,8 @@ export default function CertificateWorkspacePage() {
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccessMessage, setDownloadSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const [deviceBlocked, setDeviceBlocked] = useState(false);
+  const [blockedRecord, setBlockedRecord] = useState(null);
 
   const containerRef = useRef(null);
   const pdfCanvasRef = useRef(null);
@@ -36,10 +40,37 @@ export default function CertificateWorkspacePage() {
   // Fetch session and layout info on load
   useEffect(() => {
     async function loadSession() {
+      // Step 1: Pre-check device storage (mobile / computer)
+      if (typeof window !== 'undefined') {
+        const hasLocalFlag = localStorage.getItem('cert_downloaded') === 'true';
+        const hasCookieFlag = document.cookie.includes('gh_cert_device_downloaded=true');
+        if (hasLocalFlag || hasCookieFlag) {
+          setDeviceBlocked(true);
+          setBlockedRecord({
+            name: localStorage.getItem('cert_downloaded_name') || 'Participant',
+            date: localStorage.getItem('cert_downloaded_at') || '',
+            session: localStorage.getItem('cert_downloaded_session') || 'Workshop Session'
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       try {
         setLoading(true);
         const res = await fetch('/api/portal/session-info');
         if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          if (res.status === 403 && errData.isDeviceBlocked) {
+            setDeviceBlocked(true);
+            setBlockedRecord({
+              name: (typeof window !== 'undefined' && localStorage.getItem('cert_downloaded_name')) || 'Participant',
+              date: (typeof window !== 'undefined' && localStorage.getItem('cert_downloaded_at')) || '',
+              session: (typeof window !== 'undefined' && localStorage.getItem('cert_downloaded_session')) || 'Workshop Session'
+            });
+            setLoading(false);
+            return;
+          }
           // If unauthorized or expired, redirect to access code page
           router.replace('/portal');
           return;
@@ -126,8 +157,28 @@ export default function CertificateWorkspacePage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      // Save persistent download record on this mobile/computer browser
+      try {
+        const record = {
+          downloaded: true,
+          name: participantName.trim(),
+          timestamp: new Date().toISOString(),
+          sessionName: sessionData?.session_name || 'Workshop Session',
+          sessionId: sessionData?.id || ''
+        };
+        localStorage.setItem('cert_downloaded', 'true');
+        localStorage.setItem('cert_downloaded_name', record.name);
+        localStorage.setItem('cert_downloaded_at', record.timestamp);
+        localStorage.setItem('cert_downloaded_session', record.sessionName);
+        localStorage.setItem('cert_download_record', JSON.stringify(record));
+        sessionStorage.setItem('cert_downloaded', 'true');
+        document.cookie = 'gh_cert_device_downloaded=true; path=/; max-age=31536000; SameSite=Lax';
+      } catch (storageErr) {
+        console.warn('Storage save error:', storageErr);
+      }
+
       // Download completed -> finalize session and redirect back to access portal
-      setDownloadSuccessMessage(`Certificate for "${participantName.trim()}" downloaded successfully! Returning to access portal...`);
+      setDownloadSuccessMessage(`Certificate for "${participantName.trim()}" downloaded successfully! Device download limit now applied.`);
 
       setTimeout(() => {
         router.replace('/portal?downloaded=true');
@@ -139,25 +190,159 @@ export default function CertificateWorkspacePage() {
     }
   };
 
-  // Dynamic font size scaling calculation for long names
+  // Dynamic font size scaling calculation for long names (base size 52pt for TeX Gyre Termes)
   const calculateDynamicFontSize = () => {
-    const baseSize = layout?.name_font_size || 40;
+    const isAlex = layout?.name_font_family?.toLowerCase().includes('alexandra');
+    let baseSize = layout?.name_font_size || (isAlex ? 76 : 52);
+    if (!isAlex && baseSize > 64) {
+      baseSize = 52;
+    }
     const nameLen = participantName.length;
 
-    // Normal names (up to 20 chars) use full size
-    if (nameLen <= 22) return baseSize;
+    // Normal names (up to 24 chars) use full size
+    if (nameLen <= 24) return baseSize;
 
-    // Scale down smoothly for longer names down to a minimum of 20
-    const scale = Math.max(0.5, 22 / nameLen);
+    // Scale down smoothly for longer names down to a minimum of 24
+    const scale = Math.max(0.5, 24 / nameLen);
     return Math.round(baseSize * scale);
   };
 
+  if (deviceBlocked) {
+    return (
+      <div className="page-wrapper" style={{ background: '#080b11', color: '#f1f5f9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <header style={{
+          background: '#05080e',
+          borderBottom: '1px solid #162334',
+          padding: '16px 0',
+          color: '#ffffff'
+        }}>
+          <div className="container" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Link href="/" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              color: '#00ff66',
+              textDecoration: 'none'
+            }}>
+              <svg height="28" viewBox="0 0 16 16" version="1.1" width="28" fill="#00ff66" aria-hidden="true">
+                <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+              </svg>
+              <span style={{ fontWeight: '700', fontSize: '16px', color: '#00ff66' }}>Certify</span>
+            </Link>
+            <Link href="/" style={{ color: '#8b9cb3', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
+              <ArrowLeft size={14} /> Back to Home
+            </Link>
+          </div>
+        </header>
+
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
+          <div style={{
+            maxWidth: '520px',
+            width: '100%',
+            background: '#0d1520',
+            borderRadius: '16px',
+            border: '1px solid #ef4444',
+            boxShadow: '0 12px 40px rgba(239, 68, 68, 0.2)',
+            padding: '40px 32px',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '2px solid rgba(239, 68, 68, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              color: '#ef4444'
+            }}>
+              <Lock size={32} />
+            </div>
+
+            <div style={{
+              display: 'inline-block',
+              padding: '4px 12px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              borderRadius: '20px',
+              color: '#f87171',
+              fontSize: '12px',
+              fontWeight: '700',
+              textTransform: 'uppercase',
+              letterSpacing: '0.8px',
+              marginBottom: '14px'
+            }}>
+              1 Download Per Device Limit
+            </div>
+
+            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#f1f5f9', marginBottom: '12px' }}>
+              Certificate Editing Area Locked
+            </h1>
+
+            <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: '1.6', marginBottom: '24px' }}>
+              This mobile device or computer has already generated and downloaded an official workshop certificate. To maintain fair session guidelines, each participant is permitted to download only <strong>1 certificate per device</strong>. Re-entry into this editing area is restricted.
+            </p>
+
+            {blockedRecord?.name && (
+              <div style={{
+                background: '#070c14',
+                border: '1px solid #1e314b',
+                borderRadius: '10px',
+                padding: '16px',
+                marginBottom: '28px',
+                textAlign: 'left'
+              }}>
+                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
+                  Recorded Certificate on This Device
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#00ff66', marginBottom: '4px' }}>
+                  {blockedRecord.name}
+                </div>
+                <div style={{ fontSize: '12px', color: '#8b9cb3' }}>
+                  {blockedRecord.session || 'Workshop Session'}
+                </div>
+                {blockedRecord.date && (
+                  <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px' }}>
+                    Downloaded on: {new Date(blockedRecord.date).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <Link
+                href="/portal"
+                className="btn btn-outline"
+                style={{ padding: '12px 24px', fontSize: '14px', borderRadius: '8px' }}
+              >
+                Back to Portal
+              </Link>
+              <Link
+                href="/"
+                className="btn btn-primary"
+                style={{ padding: '12px 24px', fontSize: '14px', borderRadius: '8px' }}
+              >
+                Home Page
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="page-wrapper" style={{ background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="page-wrapper" style={{ background: '#080b11', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', padding: '40px' }}>
-          <span className="spinner" style={{ width: '36px', height: '36px', borderColor: '#238636', borderTopColor: 'transparent' }}></span>
-          <p style={{ marginTop: '16px', fontSize: '15px', color: '#475569', fontWeight: '500' }}>
+          <span className="spinner" style={{ width: '36px', height: '36px', borderColor: '#00ff66', borderTopColor: 'transparent' }}></span>
+          <p style={{ marginTop: '16px', fontSize: '15px', color: '#8b9cb3', fontWeight: '500' }}>
             Preparing your certificate workspace...
           </p>
         </div>
@@ -170,11 +355,11 @@ export default function CertificateWorkspacePage() {
   const displayDate = sessionData?.display_date || '';
 
   return (
-    <div className="page-wrapper" style={{ background: '#f8fafc' }}>
+    <div className="page-wrapper" style={{ background: '#080b11', color: '#f1f5f9' }}>
       {/* Header */}
       <header style={{
-        background: '#0d1117',
-        borderBottom: '1px solid #30363d',
+        background: '#05080e',
+        borderBottom: '1px solid #162334',
         padding: '14px 0',
         color: '#ffffff'
       }}>
@@ -186,14 +371,14 @@ export default function CertificateWorkspacePage() {
           gap: '12px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', textDecoration: 'none' }}>
-              <svg height="28" viewBox="0 0 16 16" version="1.1" width="28" fill="#ffffff" aria-hidden="true">
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00ff66', textDecoration: 'none' }}>
+              <svg height="28" viewBox="0 0 16 16" version="1.1" width="28" fill="#00ff66" aria-hidden="true">
                 <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
               </svg>
-              <span style={{ fontWeight: '600', fontSize: '16px' }}>Certify</span>
+              <span style={{ fontWeight: '700', fontSize: '16px' }}>Certify</span>
             </Link>
-            <span style={{ color: '#8b949e' }}>/</span>
-            <span style={{ fontSize: '14px', color: '#58a6ff', fontWeight: '500' }}>
+            <span style={{ color: '#57687d' }}>/</span>
+            <span style={{ fontSize: '14px', color: '#38bdf8', fontWeight: '600' }}>
               {sessionData?.session_name}
             </span>
           </div>
@@ -202,7 +387,7 @@ export default function CertificateWorkspacePage() {
             <Link
               href="/portal"
               style={{
-                color: '#8b949e',
+                color: '#8b9cb3',
                 fontSize: '13px',
                 display: 'flex',
                 alignItems: 'center',
@@ -242,20 +427,20 @@ export default function CertificateWorkspacePage() {
             alignItems: 'start'
           }}>
             {/* Left Controls Card */}
-            <div className="card" style={{ padding: '28px' }}>
+            <div className="card" style={{ padding: '28px', background: '#0d1520', border: '1px solid #1e314b', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <Sparkles size={20} color="#238636" />
-                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>
+                <Sparkles size={20} color="#00ff66" />
+                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#f1f5f9' }}>
                   Certificate Details
                 </h2>
               </div>
-              <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+              <p style={{ fontSize: '13px', color: '#8b9cb3', marginBottom: '20px' }}>
                 Enter your name below. The live preview on the right will update in real time.
               </p>
 
               {/* Participant Name Input */}
               <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label htmlFor="participantNameInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label htmlFor="participantNameInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#f1f5f9' }}>
                   <span>Your Full Name *</span>
                   {participantName && (
                     <button
@@ -264,7 +449,7 @@ export default function CertificateWorkspacePage() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#cf222e',
+                        color: '#ef4444',
                         fontSize: '12px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -289,35 +474,38 @@ export default function CertificateWorkspacePage() {
                     style={{
                       fontSize: '16px',
                       padding: '11px 14px',
-                      fontWeight: '500'
+                      fontWeight: '600',
+                      background: '#070c14',
+                      borderColor: '#1e314b',
+                      color: '#f1f5f9'
                     }}
                   />
                 </div>
-                <span className="form-hint" style={{ marginTop: '6px' }}>
+                <span className="form-hint" style={{ marginTop: '6px', color: '#57687d' }}>
                   Preserves your exact casing, spacing, and special characters.
                 </span>
               </div>
 
               {/* Automatic Date Field */}
               <div className="form-group" style={{ marginBottom: '24px' }}>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Calendar size={14} color="#0969da" />
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f1f5f9' }}>
+                  <Calendar size={14} color="#38bdf8" />
                   <span>Workshop Certificate Date</span>
                 </label>
                 <div style={{
-                  background: '#f1f5f9',
-                  border: '1px solid #e2e8f0',
+                  background: '#070c14',
+                  border: '1px solid #1e314b',
                   borderRadius: '8px',
                   padding: '10px 14px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: '#334155',
+                  color: '#38bdf8',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
                   <span>{displayDate || '13 October 2026'}</span>
                 </div>
-                <span className="form-hint" style={{ marginTop: '4px' }}>
+                <span className="form-hint" style={{ marginTop: '4px', color: '#57687d' }}>
                   Auto-populated accurately for the workshop date.
                 </span>
               </div>
@@ -333,9 +521,8 @@ export default function CertificateWorkspacePage() {
                   width: '100%',
                   padding: '14px 18px',
                   fontSize: '15px',
-                  fontWeight: '600',
-                  borderRadius: '10px',
-                  boxShadow: '0 4px 12px rgba(35, 134, 54, 0.25)'
+                  fontWeight: '700',
+                  borderRadius: '10px'
                 }}
               >
                 {downloading ? (
@@ -366,14 +553,14 @@ export default function CertificateWorkspacePage() {
                 marginBottom: '12px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b' }}>
+                  <span style={{ fontWeight: '700', fontSize: '15px', color: '#f1f5f9' }}>
                     Live Certificate Preview
                   </span>
                   <span className="badge badge-blue">
                     Real-Time 1:1 Rendering
                   </span>
                 </div>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                <span style={{ fontSize: '12px', color: '#8b9cb3' }}>
                   PDF matches this view exactly
                 </span>
               </div>
@@ -389,8 +576,8 @@ export default function CertificateWorkspacePage() {
                   background: '#ffffff',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #cbd5e1',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7)',
+                  border: '1px solid #1e314b',
                   userSelect: 'none',
                   containerType: 'inline-size'
                 }}
@@ -447,25 +634,31 @@ export default function CertificateWorkspacePage() {
                   style={{
                     position: 'absolute',
                     left: `${layout?.name_x ?? 7.25}%`,
-                    top: `${layout?.name_y ?? 51.8}%`,
+                    top: `${layout?.name_y ?? 50.5}%`,
                     transform: layout?.name_alignment === 'left'
                       ? 'translate(0%, -50%)'
                       : layout?.name_alignment === 'right'
                         ? 'translate(-100%, -50%)'
                         : 'translate(-50%, -50%)',
                     textAlign: layout?.name_alignment || 'left',
-                    maxWidth: `${layout?.name_max_width ?? 60}%`,
+                    maxWidth: `${layout?.name_max_width ?? 85}%`,
                     width: 'auto',
                     whiteSpace: 'nowrap',
                     color: layout?.name_color || '#111827',
-                    fontFamily: layout?.name_font_family?.includes('Times')
-                      ? '"Times New Roman", Times, serif'
-                      : layout?.name_font_family?.includes('Courier')
-                        ? '"Courier New", Courier, monospace'
-                        : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontWeight: layout?.name_font_family?.includes('Bold') ? '700' : '600',
-                    fontSize: `clamp(14px, ${(dynamicFontSize / 1086) * 100}cqw, ${dynamicFontSize * 1.1}px)`,
-                    letterSpacing: '-0.3px',
+                    fontFamily: layout?.name_font_family?.includes('Alexandra')
+                      ? '"Alexandra", cursive, "Brush Script MT", script'
+                      : (layout?.name_font_family?.toLowerCase().includes('termes') || layout?.name_font_family?.toLowerCase().includes('gyre') || !layout?.name_font_family)
+                        ? '"TeX Gyre Termes", "Times New Roman", Times, Georgia, serif'
+                        : layout?.name_font_family?.includes('Times')
+                          ? '"Times New Roman", Times, serif'
+                          : layout?.name_font_family?.includes('Courier')
+                            ? '"Courier New", Courier, monospace'
+                            : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontWeight: layout?.name_font_family?.includes('Alexandra')
+                      ? 'normal'
+                      : (layout?.name_font_family?.toLowerCase().includes('regular') ? 'normal' : '700'),
+                    fontSize: `clamp(18px, ${(dynamicFontSize / 1086) * 100}cqw, ${dynamicFontSize * 1.15}px)`,
+                    letterSpacing: layout?.name_font_family?.includes('Alexandra') ? '0.5px' : '0.2px',
                     pointerEvents: 'none',
                     transition: 'font-size 0.1s ease',
                     textShadow: '0 1px 2px rgba(255,255,255,0.7)'

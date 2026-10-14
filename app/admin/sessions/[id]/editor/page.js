@@ -36,12 +36,12 @@ export default function CertificateLayoutEditorPage({ params }) {
   // Layout state
   const [layout, setLayout] = useState({
     name_x: 7.25,
-    name_y: 51.8,
-    name_font_family: 'Helvetica-Bold',
-    name_font_size: 38,
+    name_y: 50.5,
+    name_font_family: 'TeX Gyre Termes',
+    name_font_size: 52,
     name_color: '#111827',
     name_alignment: 'left',
-    name_max_width: 60,
+    name_max_width: 85,
     date_x: 74.2,
     date_y: 82.5,
     date_font_family: 'Helvetica',
@@ -148,12 +148,12 @@ export default function CertificateLayoutEditorPage({ params }) {
   const resetDefaults = () => {
     setLayout({
       name_x: 7.25,
-      name_y: 51.8,
-      name_font_family: 'Helvetica-Bold',
-      name_font_size: 38,
+      name_y: 50.5,
+      name_font_family: 'TeX Gyre Termes',
+      name_font_size: 52,
       name_color: '#111827',
       name_alignment: 'left',
-      name_max_width: 60,
+      name_max_width: 85,
       date_x: 74.2,
       date_y: 82.5,
       date_font_family: 'Helvetica',
@@ -165,11 +165,11 @@ export default function CertificateLayoutEditorPage({ params }) {
 
   if (loading) {
     return (
-      <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+      <div className="page-wrapper" style={{ background: '#080b11', minHeight: '100vh', color: '#f1f5f9' }}>
         <AdminNav />
         <div style={{ textAlign: 'center', padding: '60px' }}>
-          <span className="spinner" style={{ borderColor: '#238636', borderTopColor: 'transparent' }}></span>
-          <p style={{ marginTop: '12px', color: '#656d76' }}>Loading visual template editor...</p>
+          <span className="spinner" style={{ borderColor: '#00ff66', borderTopColor: 'transparent' }}></span>
+          <p style={{ marginTop: '12px', color: '#8b9cb3' }}>Loading visual template editor...</p>
         </div>
       </div>
     );
@@ -178,7 +178,7 @@ export default function CertificateLayoutEditorPage({ params }) {
   const templatePath = session?.certificate_template_path || '/templates/default-certificate.png';
 
   return (
-    <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+    <div className="page-wrapper" style={{ background: '#080b11', minHeight: '100vh', color: '#f1f5f9' }}>
       <AdminNav />
 
       <main className="main-content" style={{ padding: '24px 0 60px' }}>
@@ -197,14 +197,14 @@ export default function CertificateLayoutEditorPage({ params }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <Link
                   href="/admin/dashboard"
-                  style={{ color: '#656d76', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', textDecoration: 'none' }}
+                  style={{ color: '#8b9cb3', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', textDecoration: 'none' }}
                 >
                   <ArrowLeft size={14} /> Dashboard
                 </Link>
-                <span style={{ color: '#d0d7de' }}>/</span>
-                <span style={{ fontSize: '13px', color: '#0969da', fontWeight: '500' }}>{session?.session_name}</span>
+                <span style={{ color: '#1e314b' }}>/</span>
+                <span style={{ fontSize: '13px', color: '#38bdf8', fontWeight: '600' }}>{session?.session_name}</span>
               </div>
-              <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#1f2328' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#f1f5f9' }}>
                 Visual Certificate Layout &amp; Positioning Editor
               </h1>
             </div>
@@ -252,12 +252,13 @@ export default function CertificateLayoutEditorPage({ params }) {
             alignItems: 'start'
           }}>
             {/* Left Controls Panel */}
-            <div className="card" style={{ padding: '24px' }}>
+            <div className="card" style={{ padding: '24px', background: '#0d1520', border: '1px solid #1e314b' }}>
               
               {/* Target Selector Tabs (Name vs Date) */}
               <div style={{
                 display: 'flex',
-                background: '#f1f5f9',
+                background: '#070c14',
+                border: '1px solid #1e314b',
                 borderRadius: '8px',
                 padding: '4px',
                 marginBottom: '20px'
@@ -274,15 +275,15 @@ export default function CertificateLayoutEditorPage({ params }) {
                     padding: '8px',
                     fontSize: '13px',
                     fontWeight: '600',
-                    border: 'none',
+                    border: activeTarget === 'name' ? '1px solid #1e314b' : 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    background: activeTarget === 'name' ? '#ffffff' : 'transparent',
-                    color: activeTarget === 'name' ? '#1f2328' : '#656d76',
-                    boxShadow: activeTarget === 'name' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    background: activeTarget === 'name' ? '#0d1520' : 'transparent',
+                    color: activeTarget === 'name' ? '#00ff66' : '#8b9cb3',
+                    boxShadow: activeTarget === 'name' ? '0 0 10px rgba(0, 255, 102, 0.2)' : 'none'
                   }}
                 >
-                  <Type size={15} color="#0969da" />
+                  <Type size={15} color={activeTarget === 'name' ? '#00ff66' : '#8b9cb3'} />
                   Participant Name
                 </button>
 
@@ -298,15 +299,15 @@ export default function CertificateLayoutEditorPage({ params }) {
                     padding: '8px',
                     fontSize: '13px',
                     fontWeight: '600',
-                    border: 'none',
+                    border: activeTarget === 'date' ? '1px solid #1e314b' : 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    background: activeTarget === 'date' ? '#ffffff' : 'transparent',
-                    color: activeTarget === 'date' ? '#1f2328' : '#656d76',
-                    boxShadow: activeTarget === 'date' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    background: activeTarget === 'date' ? '#0d1520' : 'transparent',
+                    color: activeTarget === 'date' ? '#38bdf8' : '#8b9cb3',
+                    boxShadow: activeTarget === 'date' ? '0 0 10px rgba(56, 189, 248, 0.2)' : 'none'
                   }}
                 >
-                  <Calendar size={15} color="#238636" />
+                  <Calendar size={15} color={activeTarget === 'date' ? '#38bdf8' : '#8b9cb3'} />
                   Certificate Date
                 </button>
               </div>
@@ -314,11 +315,11 @@ export default function CertificateLayoutEditorPage({ params }) {
               {/* Instructions banner */}
               <div style={{
                 padding: '10px 12px',
-                background: '#ddf4ff',
-                border: '1px solid rgba(9, 105, 218, 0.2)',
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
                 borderRadius: '6px',
                 fontSize: '12px',
-                color: '#0969da',
+                color: '#38bdf8',
                 marginBottom: '20px',
                 display: 'flex',
                 alignItems: 'center',
@@ -333,7 +334,7 @@ export default function CertificateLayoutEditorPage({ params }) {
               {/* Controls for Active Target */}
               {activeTarget === 'name' ? (
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2328', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '14px' }}>
                     Participant Name Coordinates &amp; Style
                   </h3>
 
@@ -371,8 +372,19 @@ export default function CertificateLayoutEditorPage({ params }) {
                     <select
                       className="select-input"
                       value={layout.name_font_family}
-                      onChange={(e) => setLayout({ ...layout, name_font_family: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const isAlex = val.toLowerCase().includes('alexandra');
+                        setLayout({
+                          ...layout,
+                          name_font_family: val,
+                          name_font_size: isAlex ? 76 : (layout.name_font_size > 64 ? 52 : layout.name_font_size)
+                        });
+                      }}
                     >
+                      <option value="TeX Gyre Termes">TeX Gyre Termes (Recommended)</option>
+                      <option value="TeX Gyre Termes-Regular">TeX Gyre Termes Regular</option>
+                      <option value="Alexandra">Alexandra (Calligraphy Script)</option>
                       <option value="Helvetica-Bold">Helvetica Bold (Modern Clean)</option>
                       <option value="Times-Bold">Times Roman Bold (Classic Formal)</option>
                       <option value="Courier-Bold">Courier Bold (Monospace Technical)</option>
@@ -387,8 +399,8 @@ export default function CertificateLayoutEditorPage({ params }) {
                       <label className="form-label">Font Size ({layout.name_font_size}pt)</label>
                       <input
                         type="range"
-                        min="18"
-                        max="64"
+                        min="20"
+                        max="120"
                         value={layout.name_font_size}
                         onChange={(e) => setLayout({ ...layout, name_font_size: Number(e.target.value) })}
                         style={{ width: '100%', marginTop: '6px' }}
@@ -449,7 +461,7 @@ export default function CertificateLayoutEditorPage({ params }) {
                 </div>
               ) : (
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2328', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '14px' }}>
                     Certificate Date Coordinates &amp; Style
                   </h3>
 
@@ -557,8 +569,8 @@ export default function CertificateLayoutEditorPage({ params }) {
                 marginBottom: '10px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Eye size={18} color="#0969da" />
-                  <span style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b' }}>
+                  <Eye size={18} color="#00ff66" />
+                  <span style={{ fontWeight: '700', fontSize: '15px', color: '#f1f5f9' }}>
                     Interactive Template Canvas
                   </span>
                   <span className="badge badge-purple" style={{ fontSize: '11px' }}>
@@ -578,8 +590,8 @@ export default function CertificateLayoutEditorPage({ params }) {
                   background: '#ffffff',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
-                  border: '2px solid #0969da',
+                  boxShadow: '0 0 25px rgba(0, 255, 102, 0.15)',
+                  border: '2px solid #00ff66',
                   cursor: 'crosshair',
                   userSelect: 'none',
                   containerType: 'inline-size'
@@ -632,16 +644,22 @@ export default function CertificateLayoutEditorPage({ params }) {
                     maxWidth: `${layout.name_max_width}%`,
                     whiteSpace: 'nowrap',
                     color: layout.name_color,
-                    fontFamily: layout.name_font_family?.includes('Times')
-                      ? '"Times New Roman", Times, serif'
-                      : layout.name_font_family?.includes('Courier')
-                        ? '"Courier New", Courier, monospace'
-                        : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontWeight: layout.name_font_family?.includes('Bold') ? '700' : '600',
+                    fontFamily: layout.name_font_family?.includes('Alexandra')
+                      ? '"Alexandra", cursive, "Brush Script MT", script'
+                      : (layout.name_font_family?.toLowerCase().includes('termes') || layout.name_font_family?.toLowerCase().includes('gyre') || !layout.name_font_family)
+                        ? '"TeX Gyre Termes", "Times New Roman", Times, Georgia, serif'
+                        : layout.name_font_family?.includes('Times')
+                          ? '"Times New Roman", Times, serif'
+                          : layout.name_font_family?.includes('Courier')
+                            ? '"Courier New", Courier, monospace'
+                            : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontWeight: layout.name_font_family?.includes('Alexandra')
+                      ? 'normal'
+                      : (layout.name_font_family?.toLowerCase().includes('regular') ? 'normal' : '700'),
                     fontSize: `clamp(14px, ${(layout.name_font_size / 1086) * 100}cqw, ${layout.name_font_size * 1.1}px)`,
                     padding: '2px 8px',
-                    border: activeTarget === 'name' ? '2px dashed #0969da' : '1px dotted transparent',
-                    background: activeTarget === 'name' ? 'rgba(9, 105, 218, 0.08)' : 'transparent',
+                    border: activeTarget === 'name' ? '2px dashed #00ff66' : '1px dotted transparent',
+                    background: activeTarget === 'name' ? 'rgba(0, 255, 102, 0.12)' : 'transparent',
                     borderRadius: '4px',
                     pointerEvents: 'none'
                   }}
@@ -671,8 +689,8 @@ export default function CertificateLayoutEditorPage({ params }) {
                     fontWeight: layout.date_font_family?.includes('Bold') ? '700' : '500',
                     fontSize: `clamp(9px, ${layout.date_font_size * 0.05}cqw, ${layout.date_font_size * 1.1}px)`,
                     padding: '2px 6px',
-                    border: activeTarget === 'date' ? '2px dashed #238636' : '1px dotted transparent',
-                    background: activeTarget === 'date' ? 'rgba(35, 134, 54, 0.08)' : 'transparent',
+                    border: activeTarget === 'date' ? '2px dashed #38bdf8' : '1px dotted transparent',
+                    background: activeTarget === 'date' ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
                     borderRadius: '4px',
                     pointerEvents: 'none'
                   }}
@@ -687,17 +705,17 @@ export default function CertificateLayoutEditorPage({ params }) {
                 display: 'flex',
                 justifyContent: 'space-between',
                 fontSize: '12px',
-                color: '#656d76',
-                background: '#ffffff',
+                color: '#8b9cb3',
+                background: '#0d1520',
                 padding: '10px 16px',
                 borderRadius: '8px',
-                border: '1px solid #d0d7de'
+                border: '1px solid #1e314b'
               }}>
                 <div>
-                  <span style={{ color: '#0969da', fontWeight: '600' }}>Name Position:</span> ({layout.name_x}%, {layout.name_y}%) &bull; Size: {layout.name_font_size}pt
+                  <span style={{ color: '#00ff66', fontWeight: '600' }}>Name Position:</span> ({layout.name_x}%, {layout.name_y}%) &bull; Size: {layout.name_font_size}pt
                 </div>
                 <div>
-                  <span style={{ color: '#238636', fontWeight: '600' }}>Date Position:</span> ({layout.date_x}%, {layout.date_y}%) &bull; Size: {layout.date_font_size}pt
+                  <span style={{ color: '#38bdf8', fontWeight: '600' }}>Date Position:</span> ({layout.date_x}%, {layout.date_y}%) &bull; Size: {layout.date_font_size}pt
                 </div>
               </div>
             </div>

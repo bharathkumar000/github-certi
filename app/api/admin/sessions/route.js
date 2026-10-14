@@ -41,21 +41,35 @@ export async function POST(request) {
       date_mode = 'auto_current',
       custom_date_text = '',
       timezone = 'Asia/Kolkata',
-      certificate_template_path
+      certificate_template_path,
+      expires_at,
+      duration_minutes
     } = body;
 
     const finalDate = session_date || new Date().toISOString().split('T')[0];
     const finalName = (session_name && session_name.trim()) || `Participant Session - ${finalDate}`;
 
-    const finalCode = (access_code && access_code.trim())
-      ? access_code.trim().toUpperCase()
+    let finalCode = (access_code && String(access_code).trim())
+      ? String(access_code).trim().replace(/\D/g, '')
       : generateRandomAccessCode();
+
+    if (!finalCode || finalCode.length !== 6) {
+      finalCode = generateRandomAccessCode();
+    }
+
+    let finalExpiresAt = expires_at || null;
+    const durNum = Number(duration_minutes);
+    if (!finalExpiresAt && !isNaN(durNum) && durNum > 0) {
+      finalExpiresAt = new Date(Date.now() + durNum * 60 * 1000).toISOString();
+    }
 
     const created = await createSession({
       session_name: finalName,
       session_date: finalDate,
       access_code: finalCode,
       is_active: Boolean(is_active),
+      expires_at: finalExpiresAt,
+      duration_minutes: !isNaN(durNum) && durNum > 0 ? durNum : null,
       date_mode,
       custom_date_text,
       timezone: timezone || 'Asia/Kolkata',

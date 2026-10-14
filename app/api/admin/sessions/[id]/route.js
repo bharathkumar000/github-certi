@@ -33,6 +33,24 @@ export async function PUT(request, { params }) {
   const { id } = await params;
   try {
     const body = await request.json();
+    const currentSession = await getSessionById(id);
+
+    if (body.add_minutes !== undefined) {
+      const addMins = Number(body.add_minutes);
+      const currentExpiry = currentSession?.expires_at ? new Date(currentSession.expires_at).getTime() : Date.now();
+      const baseTime = Math.max(Date.now(), currentExpiry);
+      body.expires_at = new Date(baseTime + addMins * 60 * 1000).toISOString();
+      body.is_active = true;
+    } else if (body.duration_minutes !== undefined) {
+      const dur = Number(body.duration_minutes);
+      if (dur > 0) {
+        body.expires_at = new Date(Date.now() + dur * 60 * 1000).toISOString();
+        body.is_active = true;
+      } else {
+        body.expires_at = null;
+      }
+    }
+
     const updated = await updateSession(id, body);
     if (!updated) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });

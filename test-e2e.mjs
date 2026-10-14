@@ -15,11 +15,11 @@ async function runTests() {
   });
   console.log(`[Test 2] Invalid Access Code: ${badVerifyRes.status === 401 ? '✅ PASSED (401 Unauthorized)' : '❌ FAILED'} (${badVerifyRes.status})`);
 
-  // Test 3: Valid Access Code Verification
+  // Test 3: Valid Access Code Verification (6-digit numeric code)
   const goodVerifyRes = await fetch(`${BASE_URL}/api/portal/verify-code`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accessCode: 'GH-OCT-2026' })
+    body: JSON.stringify({ accessCode: '849201' })
   });
   const goodVerifyData = await goodVerifyRes.json();
   const participantCookie = goodVerifyRes.headers.get('set-cookie');
@@ -56,20 +56,26 @@ async function runTests() {
   const isCookieCleared = clearedCookieHeader && clearedCookieHeader.includes('Max-Age=0');
   console.log(`[Test 6a] Session Invalidation on Download: ${isCookieCleared ? '✅ PASSED (Cookie cleared)' : '✅ PASSED'}`);
 
-  // Re-entering access code (or demo code) starts fresh session
-  const reVerifyRes = await fetch(`${BASE_URL}/api/portal/verify-code`, {
+  // Test 6b: 1-Download-Per-Device Limit Enforcement (Must block device that downloaded)
+  const blockedReVerifyRes = await fetch(`${BASE_URL}/api/portal/verify-code`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accessCode: 'GH-OCT-2026' })
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: 'gh_cert_device_downloaded=true'
+    },
+    body: JSON.stringify({ accessCode: '849201' })
   });
-  console.log(`[Test 6b] Access Code Re-verification for Next Download: ${reVerifyRes.status === 200 ? '✅ PASSED' : '❌ FAILED'}`);
+  const blockedData = await blockedReVerifyRes.json();
+  const isDeviceBlockedProperly = blockedReVerifyRes.status === 403 && blockedData.isDeviceBlocked === true;
+  console.log(`[Test 6b] 1-Download-Per-Device Enforcement: ${isDeviceBlockedProperly ? '✅ PASSED (403 Blocked as expected)' : '❌ FAILED'}`);
+  console.log(`          Block Message: "${blockedData.error}"`);
 
-  // Test 7: Admin Login via Access Code
+  // Test 7: Admin Login via 6-digit Access Code
   const adminLoginRes = await fetch(`${BASE_URL}/api/admin/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      accessCode: 'CERTIFY-ADMIN-2026'
+      accessCode: '849201'
     })
   });
   const adminCookie = adminLoginRes.headers.get('set-cookie');

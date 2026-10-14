@@ -28,12 +28,12 @@ CREATE TABLE IF NOT EXISTS certificate_layouts (
   id TEXT PRIMARY KEY DEFAULT ('layout-' || extract(epoch from now())::bigint::text),
   session_id TEXT NOT NULL REFERENCES workshop_sessions(id) ON DELETE CASCADE UNIQUE,
   name_x NUMERIC NOT NULL DEFAULT 7.25,      -- % horizontal position (0-100)
-  name_y NUMERIC NOT NULL DEFAULT 51.8,      -- % vertical position (0-100)
-  name_font_family TEXT NOT NULL DEFAULT 'Helvetica-Bold',
-  name_font_size NUMERIC NOT NULL DEFAULT 38,
+  name_y NUMERIC NOT NULL DEFAULT 50.5,      -- % vertical position (0-100)
+  name_font_family TEXT NOT NULL DEFAULT 'TeX Gyre Termes',
+  name_font_size NUMERIC NOT NULL DEFAULT 52,
   name_color TEXT NOT NULL DEFAULT '#111827',
   name_alignment TEXT NOT NULL DEFAULT 'left', -- 'left', 'center', 'right'
-  name_max_width NUMERIC NOT NULL DEFAULT 60,
+  name_max_width NUMERIC NOT NULL DEFAULT 85,
   date_x NUMERIC NOT NULL DEFAULT 74.2,
   date_y NUMERIC NOT NULL DEFAULT 82.5,
   date_font_family TEXT NOT NULL DEFAULT 'Helvetica',
@@ -200,12 +200,12 @@ VALUES (
   'layout-001',
   'ws-session-001',
   7.25,
-  51.8,
-  'Helvetica-Bold',
-  38,
+  50.5,
+  'TeX Gyre Termes',
+  52,
   '#111827',
   'left',
-  60,
+  85,
   74.2,
   82.5,
   'Helvetica',

@@ -142,18 +142,18 @@ export default function EditSessionPage({ params }) {
 
   if (loading) {
     return (
-      <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+      <div className="page-wrapper" style={{ background: '#080b11', minHeight: '100vh', color: '#f1f5f9' }}>
         <AdminNav />
         <div style={{ textAlign: 'center', padding: '60px' }}>
-          <span className="spinner" style={{ borderColor: '#238636', borderTopColor: 'transparent' }}></span>
-          <p style={{ marginTop: '12px', color: '#656d76' }}>Loading session...</p>
+          <span className="spinner" style={{ borderColor: '#00ff66', borderTopColor: 'transparent' }}></span>
+          <p style={{ marginTop: '12px', color: '#8b9cb3' }}>Loading session...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-wrapper" style={{ background: '#f6f8fa' }}>
+    <div className="page-wrapper" style={{ background: '#080b11', minHeight: '100vh', color: '#f1f5f9' }}>
       <AdminNav />
 
       <main className="main-content" style={{ padding: '32px 0 60px' }}>
@@ -167,7 +167,7 @@ export default function EditSessionPage({ params }) {
                 alignItems: 'center',
                 gap: '6px',
                 fontSize: '13px',
-                color: '#656d76',
+                color: '#8b9cb3',
                 textDecoration: 'none'
               }}
             >
@@ -177,21 +177,21 @@ export default function EditSessionPage({ params }) {
             <Link
               href={`/admin/sessions/${sessionId}/editor`}
               className="btn btn-secondary btn-sm"
-              style={{ background: '#ffffff', color: '#0969da' }}
+              style={{ color: '#38bdf8' }}
             >
               <Sliders size={14} />
               Open Visual Layout Editor
             </Link>
           </div>
 
-          <div className="card" style={{ padding: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #d0d7de' }}>
+          <div className="card" style={{ padding: '32px', background: '#0d1520', border: '1px solid #1e314b', boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #162334' }}>
               <div>
-                <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2328' }}>
+                <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#f1f5f9' }}>
                   Edit Workshop Session
                 </h1>
-                <p style={{ fontSize: '13px', color: '#656d76', marginTop: '4px' }}>
-                  Session ID: <code style={{ fontSize: '12px' }}>{sessionId}</code>
+                <p style={{ fontSize: '13px', color: '#8b9cb3', marginTop: '4px' }}>
+                  Session ID: <code style={{ fontSize: '12px', color: '#00ff66' }}>{sessionId}</code>
                 </p>
               </div>
 
@@ -299,17 +299,17 @@ export default function EditSessionPage({ params }) {
 
               {/* Template Section */}
               <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: '#070c14',
+                border: '1px solid #1e314b',
                 borderRadius: '8px',
                 padding: '20px',
                 margin: '24px 0'
               }}>
-                <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#1f2328', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#f1f5f9', marginBottom: '8px' }}>
                   Certificate Template Background
                 </h3>
-                <p style={{ fontSize: '13px', color: '#656d76', marginBottom: '14px' }}>
-                  Current template: <code>{session?.certificate_template_path}</code>
+                <p style={{ fontSize: '13px', color: '#8b9cb3', marginBottom: '14px' }}>
+                  Current template: <code style={{ color: '#38bdf8' }}>{session?.certificate_template_path}</code>
                 </p>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -319,8 +319,8 @@ export default function EditSessionPage({ params }) {
                     style={{
                       height: '90px',
                       borderRadius: '6px',
-                      border: '1px solid #d0d7de',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
+                      border: '1px solid #1e314b',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
                     }}
                   />
 
@@ -337,7 +337,7 @@ export default function EditSessionPage({ params }) {
                       <Upload size={14} />
                       {uploadingTemplate ? 'Uploading...' : 'Upload & Replace Template'}
                     </label>
-                    <p style={{ fontSize: '11px', color: '#8c959f', marginTop: '6px' }}>
+                    <p style={{ fontSize: '11px', color: '#57687d', marginTop: '6px' }}>
                       Supports PNG, JPG, or PDF (Max 15MB)
                     </p>
                   </div>
